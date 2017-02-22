@@ -15,6 +15,7 @@ public:
 	Servo();
 	virtual ~Servo();
 
+	void processInput(aJsonObject* root);
 	void processOutput();
 	int SN_Servos = 102;
 

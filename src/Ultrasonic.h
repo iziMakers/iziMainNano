@@ -19,12 +19,10 @@ public:
 
 	int getUltrasonic_inch();
 
-	void processInput(unsigned long SN);
-
-	int SN_Ultrasonic = 101;
+	void processInput(aJsonObject* root);
+	void processOutput();
 
 	int ultrasonic_cm = 0;
-	unsigned long lastUltrasonic = 0;
 
 
 };

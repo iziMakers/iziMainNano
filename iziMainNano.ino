@@ -1,6 +1,6 @@
 #include <aJSON.h>
 #include <arduino.h>
-#include "Aspect.h"
+#include "src/Aspect.h"
 
 #include "src/RS485Manager.h"
 #include "src/SpiManager.h"

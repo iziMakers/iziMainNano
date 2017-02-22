@@ -17,3 +17,14 @@ Module::~Module() {
 	// TODO Auto-generated destructor stub
 }
 
+int Module::getValueInt(aJsonObject* root, const char * id) {
+	if (aJson.getObjectItem(root, id) != NULL) {
+		int value = (int) aJson.getObjectItem(root, id)->valueint;
+		Serial.print(StrIndent);
+		Serial.print(StrIndent);
+		Serial.print(id);
+		Serial.println(value);
+		return value;
+	}
+	return NULL;
+}

@@ -54,14 +54,6 @@ public:
 
 	const byte SPI_delayMicroBetweenByte = 7;
 
-#define NB_MODULES_MAX    3
-
-	int nb_modules = 0;
-	unsigned long modules_SN[NB_MODULES_MAX];
-	unsigned long modules_last[NB_MODULES_MAX];
-	String modules_Types[NB_MODULES_MAX] = { };
-	int modules_Bus[NB_MODULES_MAX];      // BUS_RS485 , BUS_SPI
-
 //End TODO
 
 

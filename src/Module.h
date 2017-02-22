@@ -10,6 +10,7 @@
 
 #include <arduino.h>
 #include "aJSON.h"
+#include "Aspect.h"
 
 enum ModuleType {
 	mtWrong, mtJoystick, mtMotor, mtUltrasonic, mtColorSensor, mtServo, mtPixel
@@ -22,7 +23,7 @@ class Module {
 public:
 	Module(ModuleType mt = mtWrong, BusCommunication busCom = bcWrong);
 	virtual ~Module();
-	virtual void processInput();
+	virtual void processInput(aJsonObject* root);
 	virtual void processOutput();
 	ModuleType getType();
 	BusCommunication getBusCom();
@@ -31,11 +32,12 @@ public:
 	void setLastReading(unsigned long date);
 
 protected:
+	int getValueInt(aJsonObject* root, const char * id);
 	ModuleType mt;
 	BusCommunication busCom;
 	unsigned long serialNumber = 0;
 	unsigned long lastReading = 0;
-	//unsigned long lastWriting;// Why not
+	unsigned long lastWriting = 0;
 	//TODO to delete i think
 	String StrModule = "module";
 	String StrIndent = "  ";

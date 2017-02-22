@@ -15,7 +15,7 @@ public:
 	Motor();
 	virtual ~Motor();
 
-	void processInput(unsigned long SN);
+	void processInput(aJsonObject* root);
 	void processOutput();
 
 	int SN_Motors = 101;

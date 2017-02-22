@@ -26,22 +26,14 @@ int Ultrasonic::getUltrasonic_inch() {
 	return (int) (ultrasonic_cm / 2.54);
 }
 
-void Ultrasonic::processInput(unsigned long SN) {
-	if (isKnown(SN_Ultrasonic)) {
-		if (SN > 0) {
-			if (SN == SN_Ultrasonic) {
-				aJsonObject* root = aJson.parse(inBuffer);
+void Ultrasonic::processInput(aJsonObject* root) {
+	Serial.print(StrIndent);
+	Serial.println("Uin");
 				if (root != NULL) {
-					//Serial.print(inBuffer);
-					//aJsonObject* obj;
-					//obj = aJson.getObjectItem(root, "US");
-					if (aJson.getObjectItem(root, "US") != NULL) {
-						ultrasonic_cm = (int) aJson.getObjectItem(root, "US")->valueint;
-						Serial.print(StrIndent);
-						Serial.print(StrIndent);
-						Serial.print("US_cm: ");
-						Serial.println(ultrasonic_cm);
-						lastUltrasonic = millis();
+		int value = getValueInt(root, "US");
+		if (value != NULL) {
+			ultrasonic_cm = value;
+			lastReading = millis();
 					}
 					//aJson.deleteItem(obj);
 				} else {
@@ -50,6 +42,3 @@ void Ultrasonic::processInput(unsigned long SN) {
 				}
 				aJson.deleteItem(root);
 			}
-		}
-	}
-}
