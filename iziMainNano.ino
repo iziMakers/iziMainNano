@@ -15,8 +15,6 @@ void process();
 
 //#define PIN_LED  13     // no pin_led à cause du SPI
 
-int SN_Module = 100;      // conflit de nom à résoudre !!
-
 #define MODULE_JOYSTICKS    true
 #define MODULE_MOTORS       true
 #define MODULE_ULTRASONIC   true
@@ -52,28 +50,13 @@ int SN_Module = 100;      // conflit de nom à résoudre !!
 
 long baudrate_PC = 115200;
 
-//RS485
-#define INBUFFER_SIZE         128
-#define OUTBUFFER_SIZE        128
-
-char inBuffer[INBUFFER_SIZE];
-int inBuffer_i = 0;
-char outBuffer[OUTBUFFER_SIZE];
-int outBuffer_len = 0;
-
-boolean stringComplete = false;       // whether the string is complete
-boolean receiving = false;
-
-//String outputString = "";           // a string to hold incoming data
-boolean sendOutput = false;           // whether the string is complete
-int sendBus = 0;                      // BUS_RS485 , BUS_SPI
-
+/*
 char StrModule[] = "module";
 char StrIndent[] = "  ";
 char StrError[] = "err";
 
 char TrameByteStart = '{';
-char TrameByteEnd = '}';
+ char TrameByteEnd = '}';*/
 
 // SPI interrupt routine
 ISR (SPI_STC_vect) {
@@ -99,7 +82,7 @@ void PC_setup() {
 	aJsonObject* objectJSON = aJson.createObject();
 
 	if (objectJSON != NULL) {
-		aJson.addItemToObject(objectJSON, "sm", aJson.createItem(SN_Module));
+		aJson.addItemToObject(objectJSON, "sm", aJson.createItem(100));
 		aJson.addItemToObject(objectJSON, "mm", aJson.createItem("Starting"));
 
 		char* msg = aJson.print(objectJSON);
@@ -135,6 +118,9 @@ void setup() {
  Serial.print("DC:");
  Serial.println(inputMesureDC);
  }
+
+ //int inputMesureDC = 0;
+ //int inputMesureDC_x = 5045;      // multiplicateur pour obtenir des mV
  */
 
 void pause(unsigned long length_ms) {     // pause qui ne bloque le process
@@ -168,26 +154,26 @@ void process() {
 	 }
 	 */
 
-	if (RS485.RS485_stringComplete) {
+	if (RS485.getStringComplete()) {
 		// move the buffer
-		for (int i = 0; i < RS485.RS485_inBuffer_i; i++) {
-			inBuffer[i] = RS485.RS485_inBuffer[i];
+		for (int i = 0; i < RS485.dataBufferLength; i++) {
+			inBuffer[i] = RS485.dataBuffer[i];
 		}
-		inBuffer_i = RS485.RS485_inBuffer_i;
-		RS485.RS485_inBuffer_i = 0;
-		RS485.RS485_stringComplete = false;     // notify that the buffer is treated
+		inBuffer_i = RS485.dataBufferLength;
+		RS485.dataBufferLength = 0;
+		RS485.bStringComplete = false;     // notify that the buffer is treated
 
 		receiveBus = bcRS485;
 		stringComplete = true;
 
-	} else if (SPI.SPI_stringComplete) {
+	} else if (SPI.bStringComplete) {
 		// move the buffer
-		for (int i = 0; i < SPI.SPI_inBuffer_i; i++) {
-			inBuffer[i] = SPI.SPI_inBuffer[i];
+		for (int i = 0; i < SPI.dataBufferLength; i++) {
+			inBuffer[i] = SPI.dataBuffer[i];
 		}
-		inBuffer_i = SPI.SPI_inBuffer_i;
-		SPI.SPI_inBuffer_i = 0;
-		SPI.SPI_stringComplete = false;         // notify that the buffer is treated
+		inBuffer_i = SPI.dataBufferLength;
+		SPI.dataBufferLength = 0;
+		SPI.bStringComplete = false;         // notify that the buffer is treated
 
 		receiveBus = bcSPI;
 		stringComplete = true;

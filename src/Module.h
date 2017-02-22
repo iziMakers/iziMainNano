@@ -30,6 +30,8 @@ public:
 	unsigned long getSerialNumber();
 	unsigned long getLastReading();
 	void setLastReading(unsigned long date);
+	unsigned long getLastWriting();
+	void setLastWriting(unsigned long date);
 
 protected:
 	int getValueInt(aJsonObject* root, const char * id);

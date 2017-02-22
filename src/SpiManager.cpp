@@ -26,21 +26,21 @@ void SpiManager::setup() {
 void SpiManager::ssChange() {
 	delayMicroseconds(1);
 	if (digitalRead(SPI_SSinterruptPin) == HIGH) { // RISING
-		if (SPI_receiving) {
+		if (bReceiving) {
 			//if(receiveBus == BUS_SPI) {
 			endRX();
 			//}
 		}
 	} else { // FALLING
-		SPI_receiving = true;
+		bReceiving = true;
 		//receiveBus = BUS_SPI;
 	}
 }
 
 void SpiManager::endRX() {
-	SPI_receiving = false;
-	if (SPI_inBuffer_i > 0) {
-		SPI_stringComplete = true;
+	bReceiving = false;
+	if (dataBufferLength > 0) {
+		bStringComplete = true;
 		//Serial.print(StrIndent);
 		//Serial.print("RX:");
 		//Serial.println(SPI_inBuffer_i);
@@ -77,7 +77,7 @@ void SpiManager::beginSlaveTransaction() {
 void SpiManager::send() {
 	if (1/*sendOutput*/) {
 
-		if (SPI_receiving) {
+		if (bReceiving) {
 			if (digitalRead(SPI_SSinterruptPin) == HIGH) {
 				if (millis() > SPI_RX_start_ms + 10) {
 					Serial.print(StrIndent);
@@ -88,7 +88,7 @@ void SpiManager::send() {
 			}
 		}
 
-		if (!SPI_receiving) {
+		if (!bReceiving) {
 			if (millis() > SPI_RX_end_ms + 2) {
 				if (millis() > SPI_TX_end_ms + 10) {
 					if (digitalRead(SPI_SSinterruptPin) == HIGH) {
@@ -127,17 +127,17 @@ void SpiManager::addIncomingChar(char inChar) {
 	//receiving = true;
 
 	if (inChar != 0) {
-		if (SPI_inBuffer_i == 0) {
+		if (dataBufferLength == 0) {
 			if (inChar == TrameByteStart) {
-				SPI_inBuffer[SPI_inBuffer_i] = inChar;
-				if (SPI_inBuffer_i + 1 < INBUFFER_SIZE) {
-					SPI_inBuffer_i += 1;
+				dataBuffer[dataBufferLength] = inChar;
+				if (dataBufferLength + 1 < INBUFFER_SIZE) {
+					dataBufferLength += 1;
 				}
 			}
 		} else {
-			SPI_inBuffer[SPI_inBuffer_i] = inChar;
-			if (SPI_inBuffer_i + 1 < INBUFFER_SIZE) {
-				SPI_inBuffer_i += 1;
+			dataBuffer[dataBufferLength] = inChar;
+			if (dataBufferLength + 1 < INBUFFER_SIZE) {
+				dataBufferLength += 1;
 			}
 		}
 	}
@@ -146,7 +146,7 @@ void SpiManager::addIncomingChar(char inChar) {
 void SpiManager::MODULES_question() {
 	if (!1/*sendOutput*/) {
 		//measureDC();
-		if (millis() > SPI_lastSent + 3000) {
+		if (millis() > lastSentQuestion + 3000) {
 			//printDC();
 
 			aJsonObject* objectJSON = aJson.createObject();
@@ -170,7 +170,7 @@ void SpiManager::MODULES_question() {
 				//sendOutput = true;
 				//sendBus = BUS_SPI;      // BUS_RS485
 
-				SPI_lastSent = millis();
+				lastSentQuestion = millis();
 				//Serial.print("len:");
 				Serial.println(outBuffer_len);
 			} else {

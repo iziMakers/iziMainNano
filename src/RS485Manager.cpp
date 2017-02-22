@@ -11,8 +11,11 @@
 #include <SoftwareSerial.h>
 
 RS485Manager::RS485Manager(uint8_t receivePin, uint8_t transmitPin,
-		bool inverse_logic = false) :
-		SoftwareSerial(receivePin, transmitPin, inverse_logic) {
+		uint8_t rePin = 4, uint8_t dePin = 5, long baudrate = 9600,
+		bool inverse_logic =
+		false) :
+		SoftwareSerial(receivePin, transmitPin, inverse_logic), rePin(rePin), dePin(
+				dePin), baudrate(baudrate) {
 
 
 }
@@ -25,39 +28,39 @@ RS485Manager::~RS485Manager() {
 
 void RS485Manager::setup() {
 	// set the data rate for the SoftwareSerial port
-	begin(RS485_baudrate);
+	begin(baudrate);
 	//RS485_Serial.println("Hello, world?");
 
-	pinMode(RS485_PIN_RE, OUTPUT);
-	pinMode(RS485_PIN_DE, OUTPUT);
+	pinMode(rePin, OUTPUT);
+	pinMode(dePin, OUTPUT);
 	setRX();
 }
 
 void RS485Manager::setRX() {
-	digitalWrite(RS485_PIN_RE, LOW);
-	digitalWrite(RS485_PIN_DE, LOW);
+	digitalWrite(rePin, LOW);
+	digitalWrite(dePin, LOW);
 }
 
 void RS485Manager::setTX() {
-	digitalWrite(RS485_PIN_RE, HIGH);
-	digitalWrite(RS485_PIN_DE, HIGH);
+	digitalWrite(rePin, HIGH);
+	digitalWrite(dePin, HIGH);
 }
 
 void RS485Manager::addIncomingChar(char inChar) {
 	//receiving = true;
 
 	if (inChar != 0) {
-		if (RS485_inBuffer_i == 0) {
+		if (dataBufferLength == 0) {
 			if (inChar == TrameByteStart) {
-				RS485_inBuffer[RS485_inBuffer_i] = inChar;
-				if (RS485_inBuffer_i + 1 < INBUFFER_SIZE) {
-					RS485_inBuffer_i += 1;
+				dataBuffer[dataBufferLength] = inChar;
+				if (dataBufferLength + 1 < INBUFFER_SIZE) {
+					dataBufferLength += 1;
 				}
 			}
 		} else {
-			RS485_inBuffer[RS485_inBuffer_i] = inChar;
-			if (RS485_inBuffer_i + 1 < INBUFFER_SIZE) {
-				RS485_inBuffer_i += 1;
+			dataBuffer[dataBufferLength] = inChar;
+			if (dataBufferLength + 1 < INBUFFER_SIZE) {
+				dataBufferLength += 1;
 				//inBuffer[inBuffer_i] = 0;
 				//receiving = true;
 			}
@@ -69,17 +72,17 @@ void RS485Manager::RS484_read() {
 	if (available()) {
 		//digitalWrite(PIN_LED, HIGH);
 
-		if (RS485_receiving) {
+		if (bReceiving) {
 			Serial.println("RX not finished");
 		}
 
-		memset(RS485_inBuffer, (char) 0, INBUFFER_SIZE);
-		RS485_inBuffer_i = 0;
-		RS485_stringComplete = false;
+		memset(dataBuffer, (char) 0, INBUFFER_SIZE);
+		dataBufferLength = 0;
+		bStringComplete = false;
 
 		Serial.print("[");
 		while (available()) {
-			RS485_receiving = true;
+			bReceiving = true;
 			// get the new byte:
 			char inChar = (char) read();
 			Serial.write(inChar);
@@ -92,8 +95,8 @@ void RS485Manager::RS484_read() {
 			// if the incoming character is a newline, set a flag
 			// so the main loop can do something about it:
 			if (inChar == '\n') {
-				RS485_stringComplete = true;
-				RS485_receiving = false;
+				bStringComplete = true;
+				bReceiving = false;
 				//Serial.println("> " + inputString);
 				//Serial.println("> " + String(inBuffer));
 
@@ -117,8 +120,8 @@ void RS485Manager::RS484_read() {
 		}
 		RS485_lastRecevied = millis();
 
-		if (RS485_receiving) {
-			RS485_receiving = false;
+		if (bReceiving) {
+			bReceiving = false;
 			Serial.print("RX not finished properly:");
 			Serial.print(inBuffer_i);
 			Serial.print(":");
@@ -127,7 +130,7 @@ void RS485Manager::RS484_read() {
 			}
 			Serial.write('\n');
 
-			RS485_inBuffer_i = 0;
+			dataBufferLength = 0;
 		}
 
 		//digitalWrite(PIN_LED, LOW);
@@ -136,7 +139,7 @@ void RS485Manager::RS484_read() {
 
 void RS485Manager::send() {
 	if (1/*sendOutput*/) {
-		if (!RS485_receiving) {
+		if (!bReceiving) {
 			if (!available()) {
 
 				//digitalWrite(PIN_LED, HIGH);
@@ -177,7 +180,7 @@ void RS485Manager::send() {
 			Serial.println("Cannot send");
 
 			if (millis() - RS485_lastRecevied > 100) {
-				RS485_receiving = false;
+				bReceiving = false;
 			}
 		}
 	}
@@ -186,7 +189,7 @@ void RS485Manager::send() {
 void RS485Manager::MODULES_question() {
 	if (!1/*sendOutput*/) {
 		//measureDC();
-		if (millis() > RS485_lastSent + 3100) {
+		if (millis() > lastSentQuestion + 3100) {
 			//printDC();
 
 			aJsonObject* objectJSON = aJson.createObject();
@@ -210,7 +213,7 @@ void RS485Manager::MODULES_question() {
 				//sendOutput = true;
 				//sendBus = BUS_RS485;      // BUS_RS485
 
-				RS485_lastSent = millis();
+				lastSentQuestion = millis();
 				//Serial.print("len:");
 				Serial.println(outBuffer_len);
 			} else {

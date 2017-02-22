@@ -7,7 +7,7 @@
 
 #include "Module.h"
 
-Module::Module(ModuleType mt = mtWrong, BusCommunication busCom = bcWrong) :
+Module::Module(ModuleType mt, BusCommunication busCom) :
 		mt(mt), busCom(busCom) {
 	// TODO Auto-generated constructor stub
 
@@ -15,6 +15,33 @@ Module::Module(ModuleType mt = mtWrong, BusCommunication busCom = bcWrong) :
 
 Module::~Module() {
 	// TODO Auto-generated destructor stub
+}
+void Module::processInput(aJsonObject* root) {
+	;
+}
+void Module::processOutput() {
+}
+ModuleType Module::getType() {
+	return mt;
+}
+BusCommunication Module::getBusCom() {
+	return busCom;
+}
+unsigned long Module::getSerialNumber() {
+	return serialNumber;
+}
+unsigned long Module::getLastReading() {
+	return lastReading;
+}
+void Module::setLastReading(unsigned long date) {
+	lastReading = date;
+}
+
+unsigned long Module::getLastWriting() {
+	return lastWriting;
+}
+void Module::setLastWriting(unsigned long date) {
+	lastWriting = date;
 }
 
 int Module::getValueInt(aJsonObject* root, const char * id) {
@@ -28,3 +55,4 @@ int Module::getValueInt(aJsonObject* root, const char * id) {
 	}
 	return NULL;
 }
+
