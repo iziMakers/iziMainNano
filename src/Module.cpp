@@ -7,7 +7,8 @@
 
 #include "Module.h"
 
-Module::Module() {
+Module::Module(ModuleType mt = mtWrong, BusCommunication busCom = bcWrong) :
+		mt(mt), busCom(busCom) {
 	// TODO Auto-generated constructor stub
 
 }
@@ -15,28 +16,4 @@ Module::Module() {
 Module::~Module() {
 	// TODO Auto-generated destructor stub
 }
-bool Module::isKnown(unsigned long sn) {
-	for (int i = 0; i < nb_modules; i++) {
-		if (modules_SN[i] == sn) {
-			return true;
-		}
-	}
-	return false;
-}
 
-int Module::number(unsigned long sn) {
-	for (int i = 0; i < nb_modules; i++) {
-		if (modules_SN[i] == sn) {
-			return i;
-		}
-	}
-	return -1;
-}
-
-int Module::bus(unsigned long sn) {
-	int modNum = number(sn);
-	if (modNum > -1) {
-		return modules_Bus[modNum];
-	}
-	return -1;
-}

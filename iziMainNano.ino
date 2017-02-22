@@ -1,18 +1,21 @@
 #include <aJSON.h>
 #include <arduino.h>
+#include "Aspect.h"
 
 #include "src/RS485Manager.h"
 #include "src/SpiManager.h"
+#include "src/ModulesManager.h"
 
 SpiManager SPI;
 RS485Manager RS485(2,6); ///RX,TX
 void process();
 
+
 #define PIN_DC      A0
 
-//#define PIN_LED  13     // no pin_led √† cause du SPI
+//#define PIN_LED  13     // no pin_led ‡ cause du SPI
 
-int SN_Module = 100;      // conflit de nom √† r√©soudre !!
+int SN_Module = 100;      // conflit de nom ‡ rÈsoudre !!
 
 #define MODULE_JOYSTICKS    true
 #define MODULE_MOTORS       true
@@ -20,6 +23,8 @@ int SN_Module = 100;      // conflit de nom √† r√©soudre !!
 #define MODULE_COLORSENSOR  true
 #define MODULE_SERVO        true
 #define MODULE_PIXELS       true
+
+#include "src/Module.h"
 
 #if MODULE_JOYSTICKS
 #include "src/Joystick.h"
@@ -62,14 +67,6 @@ boolean receiving = false;
 //String outputString = "";           // a string to hold incoming data
 boolean sendOutput = false;           // whether the string is complete
 int sendBus = 0;                      // BUS_RS485 , BUS_SPI
-
-#define NB_MODULES_MAX    3
-
-int nb_modules = 0;
-unsigned long modules_SN[NB_MODULES_MAX];
-unsigned long modules_last[NB_MODULES_MAX];
-String modules_Types[NB_MODULES_MAX] = { };
-int modules_Bus[NB_MODULES_MAX];      // BUS_RS485 , BUS_SPI
 
 char StrModule[] = "module";
 char StrIndent[] = "  ";
@@ -152,8 +149,9 @@ void process() {
 	//char JsonBuffer[JSON_BUFFER_SIZE];
 	bool parseSuccess = false;
 	bool stringProcessed = false;
-	unsigned long SN_Module = 0;
-	int receiveBus = 0;                   // BUS_RS485 , BUS_SPI
+	ModuleType moduleType = mtWrong;
+	unsigned long serialNumber = 0;
+	BusCommunication receiveBus = bcWrong;                  // BUS_RS485 , BUS_SPI
 
 	RS485.RS484_read();
 
@@ -171,90 +169,85 @@ void process() {
 	 */
 
 	if (RS485.RS485_stringComplete) {
+		// move the buffer
 		for (int i = 0; i < RS485.RS485_inBuffer_i; i++) {
 			inBuffer[i] = RS485.RS485_inBuffer[i];
 		}
 		inBuffer_i = RS485.RS485_inBuffer_i;
-
 		RS485.RS485_inBuffer_i = 0;
+		RS485.RS485_stringComplete = false;     // notify that the buffer is treated
 
-		//inBuffer[inBuffer_i] = 0;
-
-		RS485.RS485_stringComplete = false;
-		receiveBus = BUS_RS485;
+		receiveBus = bcRS485;
 		stringComplete = true;
+
 	} else if (SPI.SPI_stringComplete) {
+		// move the buffer
 		for (int i = 0; i < SPI.SPI_inBuffer_i; i++) {
 			inBuffer[i] = SPI.SPI_inBuffer[i];
 		}
 		inBuffer_i = SPI.SPI_inBuffer_i;
-
 		SPI.SPI_inBuffer_i = 0;
+		SPI.SPI_stringComplete = false;         // notify that the buffer is treated
 
-		//inBuffer[inBuffer_i] = 0;
-
-		SPI.SPI_stringComplete = false;
-		receiveBus = BUS_SPI;
+		receiveBus = bcSPI;
 		stringComplete = true;
+
 	} else {
-		//stringComplete = false;
+		receiveBus = bcWrong;
+		stringComplete = false;
 	}
 
 	if (stringComplete) {
 
 		//Serial.println("SC");
 
-		Serial.print(millis());
+		DEBUG_PRINT(millis());
 
-		if (receiveBus == BUS_SPI) {
-			Serial.print(" SPI>");
-		} else if (receiveBus == BUS_RS485) {
-			Serial.print(" RS485>");
+		if (receiveBus == bcSPI) {
+			DEBUG_PRINT(" SPI>");
+		} else if (receiveBus == bcRS485) {
+			DEBUG_PRINT(" RS485>");
 		} else {
-			Serial.print(" ?");
+			DEBUG_PRINT(" ?");
 		}
 
 		//memset(JsonBuffer, 0, JSON_BUFFER_SIZE);
 
 		for (int i = 0; i < inBuffer_i; i++) {
-			//JsonBuffer[i] = inBuffer[i];
-			Serial.write(inBuffer[i]);
+			DEBUG_PRINT(inBuffer[i]);
 		}
-		//JsonBuffer[inBuffer_i] = inBuffer[inBuffer_i];
 
-		Serial.print(".");
+		DEBUG_PRINTLN(".");
 
 		//if(false) {
 		if (inBuffer_i > 2) {
 
-			//Serial.println("_ok");
-
-			unsigned long startParse = micros();
+			unsigned long startParse = micros();         // start chronometer
 
 			aJsonObject* root = aJson.parse(inBuffer);
-			//aJsonObject* root = aJson.parse(JsonBuffer);
 
 			if (root != NULL) {
-				Serial.print("parse:");
-				Serial.print(micros() - startParse);
-				Serial.println("us");
+				DEBUG_PRINT("parse:");
+				DEBUG_PRINT(micros() - startParse);
+				DEBUG_PRINTLN("us");
 
 				aJsonObject* sn = aJson.getObjectItem(root, "sn");
 				if (sn != NULL) {
-					SN_Module = sn->valueint;    //valueint      root["sn"];
-					if (!0/* MODULES_isKnown(SN_Module)*/) {
-						modules_SN[nb_modules] = SN_Module;
-						modules_Bus[nb_modules] = receiveBus;
+					serialNumber = sn->valueint;    //valueint      root["sn"];
+					if (!Module_isKnown(serialNumber)) {
+						Module newModule(mtWrong, receiveBus); // TODO add Module type
+						newModule.setLastReading(millis());
 
-						//modules_last[nb_modules] = millis();
+						modules[nb_modules] = newModule;
 						nb_modules += 1;
-						Serial.print(StrIndent);
-						Serial.print("New:");
-						Serial.println(SN_Module);
+
+						DEBUG_PRINT(StrIndent);
+						DEBUG_PRINT("New:");
+						DEBUG_PRINTLN(SN_Module);
 					} else {
-						Serial.print(StrIndent);
-						Serial.print("Mod:");
-						Serial.println(SN_Module);
+						DEBUG_PRINT(StrIndent);
+						DEBUG_PRINT("Mod:");
+						DEBUG_PRINTLN(SN_Module);
 					}
 					parseSuccess = true;
 				} else {
@@ -265,22 +258,18 @@ void process() {
 			} else {
 				Serial.print(StrError);
 				Serial.println(":parse");
-				//Serial.print(String(micros() - startParse));
-				//Serial.println("us");
-				//Serial.print(String(micros() - startParse) + "us *** parseObject() failed: << ");
-
 			}
 			aJson.deleteItem(root);
-
+			//TODO delete
 			if (!parseSuccess) {
 				Serial.print("(");
 				for (int i = 0; i < inBuffer_i; i++) {
 					Serial.print(inBuffer[i], HEX);
 					Serial.print(".");
 				}
-				//Serial.print(String(JsonBuffer));
 				Serial.println(")");
 			}
+			//End TODO
 		}
 
 		stringProcessed = true;
@@ -354,6 +343,8 @@ void loop() { // run over and over
 	}
 }
 
+
+
 //Code to print out the free memory
 struct __freelist {
 	size_t sz;
@@ -398,4 +389,3 @@ void freeMem(char* message) {
 	Serial.print(":\t");
 	Serial.println(freeMem(&biggest));
 }
-

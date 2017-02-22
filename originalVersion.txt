@@ -1,0 +1,1399 @@
+#include <aJSON.h>
+
+#define PIN_DC      A0
+
+#define BUS_RS485   1
+#define BUS_SPI     2
+
+//#define PIN_LED  13     // no pin_led à cause du SPI
+
+int SN_Module = 100;      // conflit de nom à résoudre !!
+
+#define MODULE_JOYSTICKS    false
+#define MODULE_MOTORS       false
+#define MODULE_ULTRASONIC   false
+#define MODULE_COLORSENSOR  true
+#define MODULE_SERVO        true
+#define MODULE_PIXELS       true
+
+long baudrate_PC = 115200;
+
+#define digitalPinToInterrupt(p)  ( (p) == 2 ? 0 : ((p) == 3 ? 1 : -1) )
+
+#define INBUFFER_SIZE         128
+#define OUTBUFFER_SIZE        128
+
+char inBuffer[INBUFFER_SIZE];
+int inBuffer_i = 0;
+char outBuffer[OUTBUFFER_SIZE];
+int outBuffer_len = 0;
+
+boolean stringComplete = false;       // whether the string is complete
+boolean receiving = false;
+
+//String outputString = "";           // a string to hold incoming data
+boolean sendOutput = false;           // whether the string is complete
+int sendBus = 0;                      // BUS_RS485 , BUS_SPI
+
+#define NB_MODULES_MAX    3
+
+int nb_modules = 0;
+unsigned long modules_SN[NB_MODULES_MAX];
+unsigned long modules_last[NB_MODULES_MAX];
+String modules_Types[NB_MODULES_MAX] = { };
+int modules_Bus[NB_MODULES_MAX];      // BUS_RS485 , BUS_SPI
+
+char StrModule[] = "module";
+char StrIndent[] = "  ";
+char StrError[] = "err";
+
+char TrameByteStart = '{';
+char TrameByteEnd = '}';
+
+// RS485 ********************************************
+#include <SoftwareSerial.h>
+
+#define RS485_PIN_RX  2
+#define RS485_PIN_TX  6
+#define RS485_PIN_RE  4
+#define RS485_PIN_DE  5
+
+SoftwareSerial RS485_Serial(RS485_PIN_RX, RS485_PIN_TX); // RX, TX
+
+long RS485_baudrate = 9600;   // 115200  57600
+
+char RS485_inBuffer[INBUFFER_SIZE];
+int RS485_inBuffer_i = 0;
+
+boolean RS485_stringComplete = false;  // whether the string is complete
+boolean RS485_receiving = false;
+
+unsigned long RS485_lastSent = 0;
+unsigned long RS485_lastRecevied = 0;
+
+// SPI ********************************************
+
+char SPI_inBuffer[INBUFFER_SIZE];
+int SPI_inBuffer_i = 0;
+
+boolean SPI_stringComplete = false;   // whether the string is complete
+boolean SPI_receiving = false;
+
+unsigned long SPI_lastSent = 0;
+
+// Module ColorSensor  ********************************************
+
+int SN_ColorSensor = 102;
+
+int COLORSENSOR_R = 0;
+int COLORSENSOR_G = 0;
+int COLORSENSOR_B = 0;
+int COLORSENSOR_H = 0;
+int COLORSENSOR_S = 0;
+int COLORSENSOR_V = 0;
+int COLORSENSOR_P = 0; // O:back 1:white 2:red 3:orange 4:yellow 5:lime 6:green 7:turquoise 8:cyan 9:cobalt 10:blue 11:violet 12:magenta 13:crimson
+unsigned long COLORSENSOR_lastReceived = 0;
+
+// Module Servo  ********************************************
+
+int SN_Servos = 102;
+
+int SERVOS_Val[5] = { 0, 0, 0, 0, 0 };
+int SERVOS_Val_target[5] = { 0, 0, 0, 0, 0 };
+unsigned long SERVOS_last = 0;
+
+// Module Joysticks  ********************************************
+
+#if MODULE_JOYSTICKS
+
+int SN_Joystick = 101;
+
+int JOYSTICKS_J1X = 0;
+int JOYSTICKS_J1Y = 0;
+int JOYSTICKS_J1SW = 0;
+int JOYSTICKS_J2X = 0;
+int JOYSTICKS_J2Y = 0;
+int JOYSTICKS_J2SW = 0;
+unsigned long JOYSTICKS_lastReceived = 0;
+
+#endif
+
+// Module Motors ********************************************
+
+#if MODULE_MOTORS
+
+int SN_Motors = 101;
+
+int motorA_speed = 0;
+int motorA_speed_target = 0;
+int motorB_speed = 0;
+int motorB_speed_target = 0;
+unsigned long lastMotors = 0;
+
+#endif
+
+// Module Pixels  ********************************************
+
+#if MODULE_PIXELS
+
+int SN_Pixels = 103;
+#define PIXELS_MAX    100
+boolean PIXELS_new_value = false;
+int PIXELS_pixel[PIXELS_MAX];
+boolean PIXELS_new[PIXELS_MAX];
+
+boolean PIXELS_effect_fire = false;
+
+unsigned long PIXELS_last = 0;
+
+#endif
+
+// Module Ultrasonic ********************************************
+
+int SN_Ultrasonic = 101;
+
+int ultrasonic_cm = 0;
+unsigned long lastUltrasonic = 0;
+
+//int inputMesureDC = 0;
+//int inputMesureDC_x = 5045;      // multiplicateur pour obtenir des mV
+
+// SPI ****************
+
+unsigned long SPI_RX_start_ms = 0;
+unsigned long SPI_RX_end_ms = 0;
+unsigned long SPI_TX_end_ms = 0;
+
+long SPI_lastUpdate = 0;
+const byte SPI_SSinterruptPin = 3;
+
+const byte SPI_delayMicroBetweenByte = 7;
+
+// SPI interrupt routine
+ISR (SPI_STC_vect) {
+	byte inChar = SPDR;  // grab byte from SPI Data Register
+	/*if(!receiving) {
+	 Serial.print("RX:");
+	 Serial.print(inChar, HEX);
+	 }*/
+	//receiving = true;
+	SPI_addIncomingChar(inChar);
+	SPI_RX_start_ms = millis();
+}
+
+void SPI_setup() {
+	SPI_beginSlaveTransaction();
+	//attachInterrupt (digitalPinToInterrupt(SPI_SSinterruptPin), SPI_ssRising, RISING);  // interrupt for SS rising edge
+	attachInterrupt(digitalPinToInterrupt(SPI_SSinterruptPin), SPI_ssChange,
+			CHANGE);  // interrupt for SS rising edge
+}
+
+// At the transaction's end
+/*void SPI_ssRising () {
+ if(receiving) {
+ SPI_endRX();
+ }
+ }*/
+
+void SPI_ssChange() {
+	delayMicroseconds(1);
+	if (digitalRead(SPI_SSinterruptPin) == HIGH) { // RISING
+		if (SPI_receiving) {
+			//if(receiveBus == BUS_SPI) {
+			SPI_endRX();
+			//}
+		}
+	} else { // FALLING
+		SPI_receiving = true;
+		//receiveBus = BUS_SPI;
+	}
+}
+
+void SPI_endRX() {
+	SPI_receiving = false;
+	if (SPI_inBuffer_i > 0) {
+		SPI_stringComplete = true;
+		//Serial.print(StrIndent);
+		//Serial.print("RX:");
+		//Serial.println(SPI_inBuffer_i);
+	}
+
+	//receiveBus = BUS_SPI;
+	SPI_RX_end_ms = millis();
+}
+
+byte SPI_transferAndWait(const byte value) {
+	SPDR = value;                     //Load data into the buffer
+	//while (!(SPSR & (1 << SPIF) ));   //Wait until transmission complete
+	delayMicroseconds(SPI_delayMicroBetweenByte);
+	return (SPDR);                    //Return received data
+}
+
+void SPI_beginMasterTransaction() {
+	SPCR |= _BV(MSTR);
+	SPCR &= ~_BV(SPIE);
+	digitalWrite(MOSI, LOW);
+	digitalWrite(SCK, LOW);
+	digitalWrite(SS, LOW);
+	pinMode(MOSI, OUTPUT);
+	pinMode(SCK, OUTPUT);
+	pinMode(SS, OUTPUT);
+}
+
+void SPI_beginSlaveTransaction() {
+	pinMode(MISO, OUTPUT);
+	SPCR = _BV(SPE);
+	SPCR |= _BV(SPIE);
+}
+
+void SPI_send() {
+	if (sendOutput) {
+
+		if (SPI_receiving) {
+			if (digitalRead(SPI_SSinterruptPin) == HIGH) {
+				if (millis() > SPI_RX_start_ms + 10) {
+					Serial.print(StrIndent);
+					Serial.println("SPI end RX");
+					SPI_endRX();
+					//receiving = false;
+				}
+			}
+		}
+
+		if (!SPI_receiving) {
+			if (millis() > SPI_RX_end_ms + 2) {
+				if (millis() > SPI_TX_end_ms + 10) {
+					if (digitalRead(SPI_SSinterruptPin) == HIGH) {
+
+						SPI_beginMasterTransaction();
+						// enable Slave Select
+						digitalWrite(SS, LOW);
+
+						Serial.print("SPI<");
+
+						for (int i = 0; i < outBuffer_len; i++) {
+							Serial.print(outBuffer[i]);
+							//if(i + 1 == outBuffer_len) {
+							//Serial.print('\n');
+							//}
+							SPI_transferAndWait(outBuffer[i]);
+						}
+
+						// disable Slave Select
+						digitalWrite(SS, HIGH);
+						SPI_beginSlaveTransaction();
+
+						//outputString = "";
+						sendOutput = false;
+
+						Serial.println("");
+						SPI_TX_end_ms = millis();
+					}
+				}
+			}
+		}
+	}
+}
+
+void SPI_addIncomingChar(char inChar) {
+	//receiving = true;
+
+	if (inChar != 0) {
+		if (SPI_inBuffer_i == 0) {
+			if (inChar == TrameByteStart) {
+				SPI_inBuffer[SPI_inBuffer_i] = inChar;
+				if (SPI_inBuffer_i + 1 < INBUFFER_SIZE) {
+					SPI_inBuffer_i += 1;
+				}
+			}
+		} else {
+			SPI_inBuffer[SPI_inBuffer_i] = inChar;
+			if (SPI_inBuffer_i + 1 < INBUFFER_SIZE) {
+				SPI_inBuffer_i += 1;
+			}
+		}
+	}
+}
+
+// RS485 ****************
+
+void RS485_setup() {
+	// set the data rate for the SoftwareSerial port
+	RS485_Serial.begin(RS485_baudrate);
+	//RS485_Serial.println("Hello, world?");
+
+	pinMode(RS485_PIN_RE, OUTPUT);
+	pinMode(RS485_PIN_DE, OUTPUT);
+	RS485_setRX();
+}
+
+void RS485_setRX() {
+	digitalWrite(RS485_PIN_RE, LOW);
+	digitalWrite(RS485_PIN_DE, LOW);
+}
+
+void RS485_setTX() {
+	digitalWrite(RS485_PIN_RE, HIGH);
+	digitalWrite(RS485_PIN_DE, HIGH);
+}
+
+void RS485_addIncomingChar(char inChar) {
+	//receiving = true;
+
+	if (inChar != 0) {
+		if (RS485_inBuffer_i == 0) {
+			if (inChar == TrameByteStart) {
+				RS485_inBuffer[RS485_inBuffer_i] = inChar;
+				if (RS485_inBuffer_i + 1 < INBUFFER_SIZE) {
+					RS485_inBuffer_i += 1;
+				}
+			}
+		} else {
+			RS485_inBuffer[RS485_inBuffer_i] = inChar;
+			if (RS485_inBuffer_i + 1 < INBUFFER_SIZE) {
+				RS485_inBuffer_i += 1;
+				//inBuffer[inBuffer_i] = 0;
+				//receiving = true;
+			}
+		}
+	}
+}
+
+void RS485_read() {
+	if (RS485_Serial.available()) {
+		//digitalWrite(PIN_LED, HIGH);
+
+		if (RS485_receiving) {
+			Serial.println("RX not finished");
+		}
+
+		memset(RS485_inBuffer, (char) 0, INBUFFER_SIZE);
+		RS485_inBuffer_i = 0;
+		RS485_stringComplete = false;
+
+		Serial.print("[");
+		while (RS485_Serial.available()) {
+			RS485_receiving = true;
+			// get the new byte:
+			char inChar = (char) RS485_Serial.read();
+			Serial.write(inChar);
+			// add it to the inputString:
+			//inputString += inChar;
+			if (inChar != '\n') {
+				//Serial.write(inChar);
+				RS485_addIncomingChar(inChar);
+			}
+			// if the incoming character is a newline, set a flag
+			// so the main loop can do something about it:
+			if (inChar == '\n') {
+				RS485_stringComplete = true;
+				RS485_receiving = false;
+				//Serial.println("> " + inputString);
+				//Serial.println("> " + String(inBuffer));
+
+				Serial.write(']');
+				/*Serial.write('>');
+				 Serial.write(' ');
+				 for (int i = 0 ; i < inBuffer_i ; i++) {
+				 Serial.write(inBuffer[i]);
+				 }
+				 Serial.write('\n');
+				 */
+
+				//receiveBus = BUS_RS485;
+			}
+
+			if (!RS485_Serial.available()) {
+				// on se laisse une chance de récupérer d'autres caractères
+				// à 9600 bauds, 1 octet prend 100us
+				delayMicroseconds(200);
+			}
+		}
+		RS485_lastRecevied = millis();
+
+		if (RS485_receiving) {
+			RS485_receiving = false;
+			Serial.print("RX not finished properly:");
+			Serial.print(inBuffer_i);
+			Serial.print(":");
+			for (int i = 0; i < inBuffer_i; i++) {
+				Serial.write(inBuffer[i]);
+			}
+			Serial.write('\n');
+
+			RS485_inBuffer_i = 0;
+		}
+
+		//digitalWrite(PIN_LED, LOW);
+	}
+}
+
+void RS485_send() {
+	if (sendOutput) {
+		if (!RS485_receiving) {
+			if (!RS485_Serial.available()) {
+
+				//digitalWrite(PIN_LED, HIGH);
+
+				//Serial.println("< " + outputString);
+				//Serial.println("< " + String(outBuffer));
+
+				/*for(int i = 0 ; i < outBuffer_len ; i++) {
+				 Serial.write(outBuffer[i]);
+				 }
+				 Serial.write('\n');*/
+
+				RS485_setTX();
+
+				Serial.print("RS485<");
+				//Serial.write('<');
+				//Serial.write(' ');
+				//RS485_Serial.println(String(outBuffer));
+				for (int i = 0; i < outBuffer_len; i++) {
+					RS485_Serial.write(outBuffer[i]);
+					Serial.write(outBuffer[i]);
+				}
+				RS485_Serial.write('\n');
+				Serial.write('\n');
+
+				delay(1);
+
+				RS485_setRX();
+
+				//outputString = "";
+				sendOutput = false;
+
+				//digitalWrite(PIN_LED, LOW);
+			} else {
+				Serial.println("Cannot send");
+			}
+		} else {
+			Serial.println("Cannot send");
+
+			if (millis() - RS485_lastRecevied > 100) {
+				RS485_receiving = false;
+			}
+		}
+	}
+}
+
+// PC ****************
+
+void PC_setup() {
+	// Open serial communications and wait for port to open:
+	Serial.begin(baudrate_PC);
+	while (!Serial) {
+		; // wait for serial port to connect. Needed for native USB port only
+	}
+
+	aJsonObject* objectJSON = aJson.createObject();
+
+	if (objectJSON != NULL) {
+		aJson.addItemToObject(objectJSON, "sm", aJson.createItem(SN_Module));
+		aJson.addItemToObject(objectJSON, "mm", aJson.createItem("Starting"));
+
+		char* msg = aJson.print(objectJSON);
+		Serial.println(msg);
+		free(msg);
+	}
+	aJson.deleteItem(objectJSON);
+	//Serial.println("{\"mm\":\"Starting\"}");
+}
+
+// setup ****************
+
+void setup() {
+	PC_setup();
+
+	RS485_setup();
+	SPI_setup();
+
+	//pinMode(PIN_LED, OUTPUT);
+	//digitalWrite(PIN_LED, LOW);
+
+	while (nb_modules == 0) {
+		process();
+	}
+}
+
+/*
+ void measureDC() {
+ int v_max = 5 * inputMesureDC_x;
+ inputMesureDC = map(analogRead(PIN_DC), 0, 1023, 0, v_max);
+ }
+ void printDC() {
+ Serial.print("DC:");
+ Serial.println(inputMesureDC);
+ }
+ */
+
+void pause(unsigned long length_ms) {     // pause qui ne bloque le process
+	unsigned long start_ms = millis();
+	while (millis() < start_ms + length_ms) {
+		process();
+	}
+}
+
+void process() {
+	//char inBuffer[INBUFFER_SIZE];
+	//char JsonBuffer[JSON_BUFFER_SIZE];
+	bool parseSuccess = false;
+	bool stringProcessed = false;
+	unsigned long SN_Module = 0;
+	int receiveBus = 0;                   // BUS_RS485 , BUS_SPI
+
+	RS485_read();
+
+
+/*
+	 if (receiving) {
+	 if (digitalRead(SPI_SSinterruptPin) == HIGH) {
+	 // receiving should be finished
+	 receiving = false;
+	 stringComplete = true;
+	 receiveBus = BUS_SPI;
+
+	 Serial.print("X_");
+	 }
+	 }
+	 */
+
+	if (RS485_stringComplete) {
+		for (int i = 0; i < RS485_inBuffer_i; i++) {
+			inBuffer[i] = RS485_inBuffer[i];
+		}
+		inBuffer_i = RS485_inBuffer_i;
+
+		RS485_inBuffer_i = 0;
+
+		//inBuffer[inBuffer_i] = 0;
+
+		RS485_stringComplete = false;
+		receiveBus = BUS_RS485;
+		stringComplete = true;
+	} else if (SPI_stringComplete) {
+		for (int i = 0; i < SPI_inBuffer_i; i++) {
+			inBuffer[i] = SPI_inBuffer[i];
+		}
+		inBuffer_i = SPI_inBuffer_i;
+
+		SPI_inBuffer_i = 0;
+
+		//inBuffer[inBuffer_i] = 0;
+
+		SPI_stringComplete = false;
+		receiveBus = BUS_SPI;
+		stringComplete = true;
+	} else {
+		//stringComplete = false;
+	}
+
+	if (stringComplete) {
+
+		//Serial.println("SC");
+
+		Serial.print(millis());
+
+		if (receiveBus == BUS_SPI) {
+			Serial.print(" SPI>");
+		} else if (receiveBus == BUS_RS485) {
+			Serial.print(" RS485>");
+		} else {
+			Serial.print(" ?");
+		}
+
+		//memset(JsonBuffer, 0, JSON_BUFFER_SIZE);
+
+		for (int i = 0; i < inBuffer_i; i++) {
+			//JsonBuffer[i] = inBuffer[i];
+			Serial.write(inBuffer[i]);
+		}
+		//JsonBuffer[inBuffer_i] = inBuffer[inBuffer_i];
+
+		Serial.print(".");
+
+		//if(false) {
+		if (inBuffer_i > 2) {
+
+			//Serial.println("_ok");
+
+			unsigned long startParse = micros();
+
+			aJsonObject* root = aJson.parse(inBuffer);
+			//aJsonObject* root = aJson.parse(JsonBuffer);
+
+			if (root != NULL) {
+				Serial.print("parse:");
+				Serial.print(micros() - startParse);
+				Serial.println("us");
+
+				aJsonObject* sn = aJson.getObjectItem(root, "sn");
+				if (sn != NULL) {
+					SN_Module = sn->valueint;    //valueint      root["sn"];
+					if (!MODULES_isKnown(SN_Module)) {
+						modules_SN[nb_modules] = SN_Module;
+						modules_Bus[nb_modules] = receiveBus;
+
+						//modules_last[nb_modules] = millis();
+						nb_modules += 1;
+						Serial.print(StrIndent);
+						Serial.print("New:");
+						Serial.println(SN_Module);
+					} else {
+						Serial.print(StrIndent);
+						Serial.print("Mod:");
+						Serial.println(SN_Module);
+					}
+					parseSuccess = true;
+				} else {
+					Serial.print(StrError);
+					Serial.println(":no \"sn\"");
+				}
+				//aJson.deleteItem(sn);
+			} else {
+				Serial.print(StrError);
+				Serial.println(":parse");
+				//Serial.print(String(micros() - startParse));
+				//Serial.println("us");
+				//Serial.print(String(micros() - startParse) + "us *** parseObject() failed: << ");
+
+			}
+			aJson.deleteItem(root);
+
+			if (!parseSuccess) {
+				Serial.print("(");
+				for (int i = 0; i < inBuffer_i; i++) {
+					Serial.print(inBuffer[i], HEX);
+					Serial.print(".");
+				}
+				//Serial.print(String(JsonBuffer));
+				Serial.println(")");
+			}
+		}
+
+		stringProcessed = true;
+	}
+
+	if (parseSuccess) {
+		COLORSENSOR_processInput(SN_Module);
+	}
+
+	SERVOS_processOutput();
+
+	/*
+	 if (parseSuccess) {
+	 JOYSTICKS_processInput(SN_Module);
+	 }
+	 JOYSTICKS_processOutput();
+
+	 if (parseSuccess) {
+	 ULTRASONIC_processInput(SN_Module);
+	 }
+	 //JOYSTICKS_processOutput();
+	 */
+
+	/*
+	 if (parseSuccess) {
+	 MOTORS_processInput(SN_Module);
+	 }
+	 MOTORS_processOutput();
+	 */
+
+	if (stringProcessed) {
+		stringComplete = false;
+
+		// clear the string:
+		memset(inBuffer, 0, inBuffer_i);
+		inBuffer_i = 0;
+
+		//Serial.println("inBuffer cleared");
+	}
+
+	// time to send
+
+	RS485_MODULES_question();
+	SPI_MODULES_question();
+
+	if (sendBus == BUS_RS485) {
+		RS485_send();
+	} else if (sendBus == BUS_SPI) {
+		SPI_send();
+	}
+}
+
+// loop ****************
+
+void loop() { // run over and over
+
+	while (true) {
+
+		//SERVOS_Val_target = constrain( (millis() / 100) % 180, 0, 180);
+		//SERVOS_Val_target = (SERVOS_Val_target / 10) * 10;
+
+		//SERVOS_Val_target = constrain( ((millis() / 4000) % 2) * 180, 0, 180);
+		//SERVOS_Val_target = map(SERVOS_Val_target, 0, 180, 10, 170);
+
+		//motorA_speed_target = 50;
+		//motorB_speed_target = 50;
+		//motorA_speed_target = ((JOYSTICKS_getJ1Y() - JOYSTICKS_getJ1X()) / 2);
+		process();
+		//motorB_speed_target = ((JOYSTICKS_getJ1Y() + JOYSTICKS_getJ1X()) / 2);
+		//process();
+	}
+}
+
+void RS485_MODULES_question() {
+	if (!sendOutput) {
+		//measureDC();
+		if (millis() > RS485_lastSent + 3100) {
+			//printDC();
+
+			aJsonObject* objectJSON = aJson.createObject();
+			Serial.print(StrIndent);
+			Serial.print("qm:");
+
+			if (objectJSON != NULL) {
+				aJson.addItemToObject(objectJSON, StrModule, aJson.createItem("?"));
+				char* msg = aJson.print(objectJSON);
+				//char* msg = "\"{\"module\":\"?\"}";
+				//Serial.println(msg);
+
+				int i = 0;
+				while (*(msg + i) != '\0') {
+					outBuffer[i] = *(msg + i);
+					Serial.print(outBuffer[i]);
+					i += 1;
+				}
+				outBuffer_len = i;
+				free(msg);
+				sendOutput = true;
+				sendBus = BUS_RS485;      // BUS_RS485
+
+				RS485_lastSent = millis();
+				//Serial.print("len:");
+				Serial.println(outBuffer_len);
+			} else {
+				Serial.print(StrError);
+				Serial.println(":json");
+			}
+			aJson.deleteItem(objectJSON);
+			//freeMem("freeMem");
+		}
+	}
+}
+
+void SPI_MODULES_question() {
+	if (!sendOutput) {
+		//measureDC();
+		if (millis() > SPI_lastSent + 3000) {
+			//printDC();
+
+			aJsonObject* objectJSON = aJson.createObject();
+			Serial.print(StrIndent);
+			Serial.print("qm:");
+
+			if (objectJSON != NULL) {
+				aJson.addItemToObject(objectJSON, StrModule, aJson.createItem("?"));
+				char* msg = aJson.print(objectJSON);
+				//char* msg = "\"{\"module\":\"?\"}";
+				//Serial.println(msg);
+
+				int i = 0;
+				while (*(msg + i) != '\0') {
+					outBuffer[i] = *(msg + i);
+					Serial.print(outBuffer[i]);
+					i += 1;
+				}
+				outBuffer_len = i;
+				free(msg);
+				sendOutput = true;
+				sendBus = BUS_SPI;      // BUS_RS485
+
+				SPI_lastSent = millis();
+				//Serial.print("len:");
+				Serial.println(outBuffer_len);
+			} else {
+				Serial.print(StrError);
+				Serial.println(":json");
+			}
+			aJson.deleteItem(objectJSON);
+			//freeMem("freeMem");
+		}
+
+	}
+}
+
+boolean MODULES_isKnown(unsigned long sn) {
+	for (int i = 0; i < nb_modules; i++) {
+		if (modules_SN[i] == sn) {
+			return true;
+		}
+	}
+	return false;
+}
+
+int MODULES_number(unsigned long sn) {
+	for (int i = 0; i < nb_modules; i++) {
+		if (modules_SN[i] == sn) {
+			return i;
+		}
+	}
+	return -1;
+}
+
+int MODULES_bus(unsigned long sn) {
+	int modNum = MODULES_number(sn);
+	if (modNum > -1) {
+		return modules_Bus[modNum];
+	}
+	return -1;
+}
+
+void COLORSENSOR_processInput(unsigned long SN) {
+	if (MODULES_isKnown(SN_ColorSensor)) {
+		if (SN > 0) {
+			if (SN == SN_ColorSensor) {
+				Serial.print(StrIndent);
+				Serial.print("Cin");
+				//Serial.println(inBuffer);
+
+				aJsonObject* root = aJson.parse(inBuffer);
+				if (root != NULL) {
+					Serial.print("\n");
+					//Serial.println("Jin:");
+					//Serial.print(inBuffer);
+					if (aJson.getObjectItem(root, "H") != NULL) {
+						COLORSENSOR_H = (int) aJson.getObjectItem(root, "H")->valueint;
+						COLORSENSOR_lastReceived = millis();
+						Serial.print(StrIndent);
+						Serial.print(StrIndent);
+						Serial.print("H:");
+						Serial.println(COLORSENSOR_H);
+					}
+					if (aJson.getObjectItem(root, "S") != NULL) {
+						COLORSENSOR_S = (int) aJson.getObjectItem(root, "S")->valueint;
+						COLORSENSOR_lastReceived = millis();
+						Serial.print(StrIndent);
+						Serial.print(StrIndent);
+						Serial.print("S:");
+						Serial.println(COLORSENSOR_S);
+					}
+					if (aJson.getObjectItem(root, "V") != NULL) {
+						COLORSENSOR_V = (int) aJson.getObjectItem(root, "V")->valueint;
+						COLORSENSOR_lastReceived = millis();
+						Serial.print(StrIndent);
+						Serial.print(StrIndent);
+						Serial.print("V:");
+						Serial.println(COLORSENSOR_V);
+					}
+					if (aJson.getObjectItem(root, "P") != NULL) {
+						COLORSENSOR_P = (int) aJson.getObjectItem(root, "P")->valueint;
+						COLORSENSOR_lastReceived = millis();
+						Serial.print(StrIndent);
+						Serial.print(StrIndent);
+						Serial.print("P:");
+						Serial.println(COLORSENSOR_P);
+					}
+				} else {
+					Serial.print(StrError);
+					Serial.println(":");
+				}
+				aJson.deleteItem(root);
+			}
+		}
+	}
+}
+
+int COLORSENSOR_getH() {
+	process();
+	return COLORSENSOR_H;
+}
+
+int COLORSENSOR_getS() {
+	process();
+	return COLORSENSOR_S;
+}
+
+int COLORSENSOR_getV() {
+	process();
+	return COLORSENSOR_V;
+}
+
+int COLORSENSOR_getP() {
+	process();
+	return COLORSENSOR_P;
+}
+
+void SERVOS_processOutput() {
+	if (!sendOutput) {
+		if (MODULES_isKnown(SN_Servos)) {
+			boolean new_val = false;
+			for (int iiii = 0; iiii < 5; iiii++) {
+				if (SERVOS_Val[iiii] != SERVOS_Val_target[iiii]) {
+					new_val = true;
+				}
+			}
+
+			if (new_val) { // || (millis() >= SERVOS_last + 1000)) {
+				if (millis() >= SERVOS_last + 10) {
+					Serial.print(StrIndent);
+					Serial.print("Sout:");
+					aJsonObject* objectJSON = aJson.createObject();
+					if (objectJSON != NULL) {
+						aJson.addItemToObject(objectJSON, "sn",
+								aJson.createItem(SN_Servos));
+
+						char buf[2];
+						for (int iiii = 0; iiii < 5; iiii++) {
+							if (SERVOS_Val[iiii] != SERVOS_Val_target[iiii]) {
+								itoa(iiii + 1, buf, 10);
+								aJson.addItemToObject(objectJSON, buf,
+										aJson.createItem(SERVOS_Val_target[iiii]));
+
+								SERVOS_Val[iiii] = SERVOS_Val_target[iiii];
+							}
+						}
+
+						char* msg = aJson.print(objectJSON);
+						Serial.print(msg);
+						int i = 0;
+						while (*(msg + i) != '\0') {
+							outBuffer[i] = *(msg + i);
+							i += 1;
+						}
+						outBuffer_len = i;
+						Serial.print(":");
+						Serial.println(outBuffer_len);
+						free(msg);
+
+						//freeMem("freeMem");
+						sendOutput = true;
+						sendBus = MODULES_bus(SN_Servos);
+					} else {
+						Serial.print(StrError);
+						Serial.println(":json");
+					}
+					aJson.deleteItem(objectJSON);
+					SERVOS_last = millis();
+				}
+			}
+		}
+	}
+}
+
+#if MODULE_JOYSTICKS
+
+int JOYSTICKS_getJ1X() {
+	process();
+	return JOYSTICKS_J1X;
+}
+int JOYSTICKS_getJ1Y() {
+	process();
+	return JOYSTICKS_J1Y;
+}
+int JOYSTICKS_getJ1SW() {
+	process();
+	return JOYSTICKS_J1SW;
+}
+
+void JOYSTICKS_processInput(unsigned long SN) {
+	if (MODULES_isKnown(SN_Joystick)) {
+		if (SN > 0) {
+			if (SN == SN_Joystick) {
+				Serial.print(StrIndent);
+				Serial.print("Jin");
+				//Serial.println(inBuffer);
+
+				aJsonObject* root = aJson.parse(inBuffer);
+				if (root != NULL) {
+					Serial.print("\n");
+					//Serial.println("Jin:");
+					//Serial.print(inBuffer);
+					if (aJson.getObjectItem(root, "JX") != NULL) {
+						JOYSTICKS_J1X = (int)aJson.getObjectItem(root, "JX")->valueint;
+						JOYSTICKS_lastReceived = millis();
+						Serial.print(StrIndent);
+						Serial.print(StrIndent);
+						Serial.print("J1X:");
+						Serial.println(JOYSTICKS_J1X);
+					}
+					if (aJson.getObjectItem(root, "JY") != NULL) {
+						JOYSTICKS_J1Y = (int)aJson.getObjectItem(root, "JY")->valueint;
+						JOYSTICKS_lastReceived = millis();
+						Serial.print(StrIndent);
+						Serial.print(StrIndent);
+						Serial.print("J1Y:");
+						Serial.println(JOYSTICKS_J1Y);
+					}
+					if (aJson.getObjectItem(root, "JSW") != NULL) {
+						JOYSTICKS_J1SW = (int)aJson.getObjectItem(root, "JSW")->valueint;
+						JOYSTICKS_lastReceived = millis();
+						Serial.print(StrIndent);
+						Serial.print(StrIndent);
+						Serial.print("J1SW:");
+						Serial.println(JOYSTICKS_J1SW);
+					}
+				}
+				else {
+					Serial.print(StrError);
+					Serial.println(":");
+				}
+				aJson.deleteItem(root);
+			}
+		}
+	}
+}
+
+void JOYSTICKS_processOutput() {
+	if (!sendOutput) {
+		if (millis() > JOYSTICKS_lastReceived + 300) {
+			if (MODULES_isKnown(SN_Joystick)) {
+				aJsonObject* objectJSON = aJson.createObject();
+				aJson.addItemToObject(objectJSON, "sn", aJson.createItem(SN_Joystick));
+				aJson.addItemToObject(objectJSON, "j", aJson.createItem(1));
+
+				Serial.print(StrIndent);
+				Serial.print("Jout:");
+				if (objectJSON != NULL) {
+					char* msg = aJson.print(objectJSON);
+					int i = 0;
+					while (*(msg + i) != '\0') {
+						outBuffer[i] = *(msg + i);
+						Serial.write(outBuffer[i]);
+						i += 1;
+					}
+					outBuffer_len = i;
+					free(msg);
+					sendOutput = true;
+					sendBus = MODULES_bus(SN_Joystick);
+					Serial.println(":ok");
+				}
+				else {
+					Serial.print(StrError);
+					Serial.println(":");
+				}
+				aJson.deleteItem(objectJSON);
+				//freeMem("freeMem");
+			}
+			JOYSTICKS_lastReceived = millis();
+		}
+	}
+}
+
+#endif
+
+int getUltrasonic() {
+	process();
+	return ultrasonic_cm;
+}
+
+int getUltrasonic_inch() {
+	process();
+	return (int) (ultrasonic_cm / 2.54);
+}
+
+void ULTRASONIC_processInput(unsigned long SN) {
+	if (MODULES_isKnown(SN_Ultrasonic)) {
+		if (SN > 0) {
+			if (SN == SN_Ultrasonic) {
+				aJsonObject* root = aJson.parse(inBuffer);
+				if (root != NULL) {
+					//Serial.print(inBuffer);
+					//aJsonObject* obj;
+					//obj = aJson.getObjectItem(root, "US");
+					if (aJson.getObjectItem(root, "US") != NULL) {
+						ultrasonic_cm = (int) aJson.getObjectItem(root, "US")->valueint;
+						Serial.print(StrIndent);
+						Serial.print(StrIndent);
+						Serial.print("US_cm: ");
+						Serial.println(ultrasonic_cm);
+						lastUltrasonic = millis();
+					}
+					//aJson.deleteItem(obj);
+				} else {
+					Serial.print(StrError);
+					Serial.println(":USin");
+				}
+				aJson.deleteItem(root);
+			}
+		}
+	}
+}
+
+#if MODULE_MOTORS
+
+void MOTORS_processInput(unsigned long SN) {
+	if (MODULES_isKnown(SN_Motors)) {
+		if (SN > 0) {
+			if (SN == SN_Motors) {
+				aJsonObject* root = aJson.parse(inBuffer);
+				if (root != NULL) {
+					//aJsonObject* obj;
+					//obj = aJson.getObjectItem(root, "a");
+					if (aJson.getObjectItem(root, "a") != NULL) {
+						motorA_speed = aJson.getObjectItem(root, "a")->valueint;
+						lastMotors = millis();
+
+						Serial.print(StrIndent);
+						Serial.print(StrIndent);
+						Serial.print("a:");
+						Serial.println(motorA_speed);
+					}
+					//aJsonObject* b_ = aJson.getObjectItem(root, "b");
+					if (aJson.getObjectItem(root, "b") != NULL) {
+						motorB_speed = aJson.getObjectItem(root, "b")->valueint;
+						lastMotors = millis();
+
+						Serial.print(StrIndent);
+						Serial.print(StrIndent);
+						Serial.print("b:");
+						Serial.println(motorB_speed);
+					}
+				}
+				else {
+					Serial.print(StrError);
+					Serial.println(":Min");
+				}
+				aJson.deleteItem(root);
+			}
+		}
+	}
+}
+
+void MOTORS_processOutput() {
+	if (!sendOutput) {
+		if (MODULES_isKnown(SN_Motors)) {
+			if (motorA_speed != motorA_speed_target || motorB_speed != motorB_speed_target || (millis() >= lastMotors + 1000)) {
+				if (millis() >= lastMotors + 100) {
+					Serial.print(StrIndent);
+					Serial.print("Mout:");
+					aJsonObject* objectJSON = aJson.createObject();
+					if (objectJSON != NULL) {
+						aJson.addItemToObject(objectJSON, "sn", aJson.createItem(SN_Motors));
+						aJson.addItemToObject(objectJSON, "a", aJson.createItem(motorA_speed_target));
+						aJson.addItemToObject(objectJSON, "b", aJson.createItem(motorB_speed_target));
+						char* msg = aJson.print(objectJSON);
+						Serial.print(msg);
+						int i = 0;
+						while (*(msg + i) != '\0') {
+							outBuffer[i] = *(msg + i);
+							i += 1;
+						}
+						outBuffer_len = i;
+						Serial.print(":");
+						Serial.println(outBuffer_len);
+						free(msg);
+
+						//freeMem("freeMem");
+						sendOutput = true;
+						sendBus = MODULES_bus(SN_Motors);
+					}
+					else {
+						Serial.print(StrError);
+						Serial.println(":json");
+					}
+					aJson.deleteItem(objectJSON);
+					lastMotors = millis();
+				}
+			}
+		}
+	}
+}
+
+#endif
+
+#if MODULE_PIXELS
+
+void PIXELS_setup() {
+	for (int iiii = 0; iiii < PIXELS_MAX; iiii++) {
+		PIXELS_pixel[iiii] = 0;
+		PIXELS_new[iiii] = false;
+	}
+}
+
+void PIXELS_processOutput() {
+	if (!sendOutput) {
+		if (MODULES_isKnown(SN_Pixels)) {
+			if (PIXELS_new_value) {
+				//if (millis() >= lastMotors + 100) {
+				Serial.print(StrIndent);
+				Serial.print("Pout:");
+				aJsonObject* objectJSON = aJson.createObject();
+				if (objectJSON != NULL) {
+					aJson.addItemToObject(objectJSON, "sn", aJson.createItem(SN_Pixels));
+
+					if (PIXELS_effect_fire) {
+						aJson.addItemToObject(objectJSON, "fire", aJson.createItem(1));
+					} else {
+						char charBuf[3];
+						int nb_pixels = 5;
+						for (int iiii = 0; iiii < PIXELS_MAX; iiii++) {
+							if (PIXELS_new[iiii] && nb_pixels > 0) {
+								itoa(iiii, charBuf, 3);
+								aJson.addItemToObject(objectJSON, charBuf,
+										aJson.createItem(PIXELS_pixel[iiii]));
+								PIXELS_new[iiii] = false;
+								nb_pixels -= 1;
+							}
+						}
+						if (nb_pixels == 5) {
+							aJson.addItemToObject(objectJSON, "fire", aJson.createItem(0));
+						}
+					}
+
+					/*if(PIXELS_new[1]) {
+					 aJson.addItemToObject(objectJSON, "1", aJson.createItem(PIXELS_pixel[1]));
+					 PIXELS_new[1] = false;
+					 }*/
+
+					char* msg = aJson.print(objectJSON);
+					Serial.print(msg);
+					int iiii = 0;
+					while (*(msg + iiii) != '\0') {
+						outBuffer[iiii] = *(msg + iiii);
+						iiii += 1;
+					}
+					outBuffer_len = iiii;
+					Serial.print(":");
+					Serial.println(outBuffer_len);
+					free(msg);
+
+					//freeMem("freeMem");
+					sendOutput = true;
+					sendBus = MODULES_bus(SN_Pixels);
+
+					PIXELS_new_value = false;
+					for (int iiii = 0; iiii < PIXELS_MAX; iiii++) {
+						if (PIXELS_new[iiii]) {
+							PIXELS_new_value = true;
+						}
+					}
+
+				} else {
+					Serial.print(StrError);
+					Serial.println(":json");
+				}
+				aJson.deleteItem(objectJSON);
+				PIXELS_last = millis();
+				// }
+			}
+		}
+	}
+}
+
+void PIXELS_set(int pixel_num, int pixel_color) {
+	if (pixel_num > 0) {
+		pixel_num -= 1;
+	}
+
+	PIXELS_pixel[pixel_num] = pixel_color;
+	PIXELS_new[pixel_num] = true;
+	PIXELS_new_value = true;
+}
+
+void PIXELS_set_hsl(int pixel_num, double h, double s, double l) {
+	if (pixel_num > 0) {
+		pixel_num -= 1;
+	}
+
+	byte rgb[3];
+
+	hslToRgb(h, s, l, rgb);
+
+	int pixel_color = ((rgb[0] / 16) << 8) + ((rgb[1] / 16) << 4)
+			+ ((rgb[2] / 16) << 0);
+
+	PIXELS_pixel[pixel_num] = pixel_color;
+	PIXELS_new[pixel_num] = true;
+	PIXELS_new_value = true;
+}
+
+void PIXELS_set_fire(boolean val) {
+	PIXELS_effect_fire = val;
+	PIXELS_new_value = true;
+}
+
+void hslToRgb(double h, double s, double l, byte rgb[]) {
+	double r, g, b;
+
+	h = h / 360;
+	s = s / 100;
+	l = l / 100;
+
+	if (s == 0) {
+		r = g = b = l; // achromatic
+	} else {
+		double q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+		double p = 2 * l - q;
+		r = hue2rgb(p, q, h + 1 / 3.0);
+		g = hue2rgb(p, q, h);
+		b = hue2rgb(p, q, h - 1 / 3.0);
+	}
+
+	rgb[0] = r * 255;
+	rgb[1] = g * 255;
+	rgb[2] = b * 255;
+}
+
+double hue2rgb(double p, double q, double t) {
+	if (t < 0)
+		t += 1;
+	if (t > 1)
+		t -= 1;
+	if (t < 1 / 6.0)
+		return p + (q - p) * 6 * t;
+	if (t < 1 / 2.0)
+		return q;
+	if (t < 2 / 3.0)
+		return p + (q - p) * (2 / 3.0 - t) * 6;
+	return p;
+}
+
+#endif
+
+//Code to print out the free memory
+
+struct __freelist {
+	size_t sz;
+	struct __freelist *nx;
+};
+
+extern char * const __brkval;
+extern struct __freelist *__flp;
+
+uint16_t freeMem(uint16_t *biggest) {
+	char *brkval;
+	char *cp;
+	unsigned freeSpace;
+	struct __freelist *fp1, *fp2;
+
+	brkval = __brkval;
+	if (brkval == 0) {
+		brkval = __malloc_heap_start;
+	}
+	cp = __malloc_heap_end;
+	if (cp == 0) {
+		cp = ((char *) AVR_STACK_POINTER_REG) - __malloc_margin;
+	}
+	if (cp <= brkval)
+		return 0;
+
+	freeSpace = cp - brkval;
+
+	for (*biggest = 0, fp1 = __flp, fp2 = 0; fp1; fp2 = fp1, fp1 = fp1->nx) {
+		if (fp1->sz > *biggest)
+			*biggest = fp1->sz;
+		freeSpace += fp1->sz;
+	}
+
+	return freeSpace;
+}
+
+uint16_t biggest;
+
+void freeMem(char* message) {
+	Serial.print(message);
+	Serial.print(":\t");
+	Serial.println(freeMem(&biggest));
+}
+

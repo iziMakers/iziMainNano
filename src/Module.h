@@ -11,19 +11,31 @@
 #include <arduino.h>
 #include "aJSON.h"
 
+enum ModuleType {
+	mtWrong, mtJoystick, mtMotor, mtUltrasonic, mtColorSensor, mtServo, mtPixel
+};
+enum BusCommunication {
+	bcWrong, bcSPI, bcRS485
+};
+
 class Module {
 public:
-	Module();
+	Module(ModuleType mt = mtWrong, BusCommunication busCom = bcWrong);
 	virtual ~Module();
 	virtual void processInput();
 	virtual void processOutput();
-
-	bool isKnown(unsigned long sn);
-	int number(unsigned long sn);
-	int bus(unsigned long sn);
+	ModuleType getType();
+	BusCommunication getBusCom();
+	unsigned long getSerialNumber();
+	unsigned long getLastReading();
+	void setLastReading(unsigned long date);
 
 protected:
-	unsigned long serialNumber;
+	ModuleType mt;
+	BusCommunication busCom;
+	unsigned long serialNumber = 0;
+	unsigned long lastReading = 0;
+	//unsigned long lastWriting;// Why not
 	//TODO to delete i think
 	String StrModule = "module";
 	String StrIndent = "  ";
@@ -36,14 +48,6 @@ protected:
 	int inBuffer_i = 0;
 	char outBuffer[OUTBUFFER_SIZE];
 	int outBuffer_len = 0;
-
-#define NB_MODULES_MAX    3
-
-	int nb_modules = 0;
-	unsigned long modules_SN[NB_MODULES_MAX];
-	unsigned long modules_last[NB_MODULES_MAX];
-	String modules_Types[NB_MODULES_MAX] = { };
-	int modules_Bus[NB_MODULES_MAX];      // BUS_RS485 , BUS_SPI
 
 //End TODO
 };
