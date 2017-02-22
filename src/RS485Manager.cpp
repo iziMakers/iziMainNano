@@ -9,8 +9,11 @@
 #include <arduino.h>
 
 #include <SoftwareSerial.h>
-RS485Manager::RS485Manager() {
-	RS485_Serial(RS485_PIN_RX, RS485_PIN_TX); // RX, TX
+
+RS485Manager::RS485Manager(uint8_t receivePin, uint8_t transmitPin,
+		bool inverse_logic = false) :
+		SoftwareSerial(receivePin, transmitPin, inverse_logic) {
+
 
 }
 
@@ -20,30 +23,9 @@ RS485Manager::~RS485Manager() {
 
 
 
-#define BUS_RS485   1
-
-#define RS485_PIN_RX  2
-#define RS485_PIN_TX  6
-#define RS485_PIN_RE  4
-#define RS485_PIN_DE  5
-
-#define INBUFFER_SIZE         128
-#define OUTBUFFER_SIZE        128
-
-long RS485_baudrate = 9600;   // 115200  57600
-
-char RS485_inBuffer[INBUFFER_SIZE];
-int RS485_inBuffer_i = 0;
-
-boolean RS485_stringComplete = false;  // whether the string is complete
-boolean RS485_receiving = false;
-
-unsigned long RS485_lastSent = 0;
-unsigned long RS485_lastRecevied = 0;
-
 void RS485Manager::setup() {
 	// set the data rate for the SoftwareSerial port
-	RS485_Serial.begin(RS485_baudrate);
+	begin(RS485_baudrate);
 	//RS485_Serial.println("Hello, world?");
 
 	pinMode(RS485_PIN_RE, OUTPUT);
@@ -83,8 +65,8 @@ void RS485Manager::addIncomingChar(char inChar) {
 	}
 }
 
-void RS485Manager::read() {
-	if (RS485_Serial.available()) {
+void RS485Manager::RS484_read() {
+	if (available()) {
 		//digitalWrite(PIN_LED, HIGH);
 
 		if (RS485_receiving) {
@@ -96,10 +78,10 @@ void RS485Manager::read() {
 		RS485_stringComplete = false;
 
 		Serial.print("[");
-		while (RS485_Serial.available()) {
+		while (available()) {
 			RS485_receiving = true;
 			// get the new byte:
-			char inChar = (char) RS485_Serial.read();
+			char inChar = (char) read();
 			Serial.write(inChar);
 			// add it to the inputString:
 			//inputString += inChar;
@@ -127,7 +109,7 @@ void RS485Manager::read() {
 				//receiveBus = BUS_RS485;
 			}
 
-			if (!RS485_Serial.available()) {
+			if (!available()) {
 				// on se laisse une chance de récupérer d'autres caractères
 				// à 9600 bauds, 1 octet prend 100us
 				delayMicroseconds(200);
@@ -153,9 +135,9 @@ void RS485Manager::read() {
 }
 
 void RS485Manager::send() {
-	if (sendOutput) {
+	if (1/*sendOutput*/) {
 		if (!RS485_receiving) {
-			if (!RS485_Serial.available()) {
+			if (!available()) {
 
 				//digitalWrite(PIN_LED, HIGH);
 
@@ -174,10 +156,10 @@ void RS485Manager::send() {
 				//Serial.write(' ');
 				//RS485_Serial.println(String(outBuffer));
 				for (int i = 0; i < outBuffer_len; i++) {
-					RS485_Serial.write(outBuffer[i]);
+					write(outBuffer[i]);
 					Serial.write(outBuffer[i]);
 				}
-				RS485_Serial.write('\n');
+				write('\n');
 				Serial.write('\n');
 
 				delay(1);
@@ -185,7 +167,7 @@ void RS485Manager::send() {
 				setRX();
 
 				//outputString = "";
-				sendOutput = false;
+				//sendOutput = false;
 
 				//digitalWrite(PIN_LED, LOW);
 			} else {
@@ -202,7 +184,7 @@ void RS485Manager::send() {
 }
 
 void RS485Manager::MODULES_question() {
-	if (!sendOutput) {
+	if (!1/*sendOutput*/) {
 		//measureDC();
 		if (millis() > RS485_lastSent + 3100) {
 			//printDC();
@@ -212,7 +194,7 @@ void RS485Manager::MODULES_question() {
 			Serial.print("qm:");
 
 			if (objectJSON != NULL) {
-				aJson.addItemToObject(objectJSON, StrModule, aJson.createItem("?"));
+				aJson.addItemToObject(objectJSON, "module", aJson.createItem("?"));
 				char* msg = aJson.print(objectJSON);
 				//char* msg = "\"{\"module\":\"?\"}";
 				//Serial.println(msg);
@@ -225,8 +207,8 @@ void RS485Manager::MODULES_question() {
 				}
 				outBuffer_len = i;
 				free(msg);
-				sendOutput = true;
-				sendBus = BUS_RS485;      // BUS_RS485
+				//sendOutput = true;
+				//sendBus = BUS_RS485;      // BUS_RS485
 
 				RS485_lastSent = millis();
 				//Serial.print("len:");

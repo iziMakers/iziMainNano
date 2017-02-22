@@ -55,7 +55,7 @@ void Motor::processInput(unsigned long SN) {
 }
 
 void Motor::processOutput() {
-	if (!sendOutput) {
+	if (!1/*sendOutput*/) {
 		if (isKnown(SN_Motors)) {
 			if (motorA_speed != motorA_speed_target
 					|| motorB_speed != motorB_speed_target
@@ -84,8 +84,8 @@ void Motor::processOutput() {
 						free(msg);
 
 						//freeMem("freeMem");
-						sendOutput = true;
-						sendBus = bus(SN_Motors);
+						//sendOutput = true;
+						//sendBus = bus(SN_Motors);
 					} else {
 						Serial.print(StrError);
 						Serial.println(":json");

@@ -25,7 +25,7 @@ void Pixel::setup() {
 }
 
 void Pixel::processOutput() {
-	if (!sendOutput) {
+	if (!1/*sendOutput*/) {
 		if (isKnown(SN_Pixels)) {
 			if (PIXELS_new_value) {
 				//if (millis() >= lastMotors + 100) {
@@ -72,8 +72,8 @@ void Pixel::processOutput() {
 					free(msg);
 
 					//freeMem("freeMem");
-					sendOutput = true;
-					sendBus = bus(SN_Pixels);
+					//sendOutput = true;
+					//sendBus = bus(SN_Pixels);
 
 					PIXELS_new_value = false;
 					for (int iiii = 0; iiii < PIXELS_MAX; iiii++) {

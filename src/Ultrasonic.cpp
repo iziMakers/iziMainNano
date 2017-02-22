@@ -17,12 +17,12 @@ Ultrasonic::~Ultrasonic() {
 	// TODO Auto-generated destructor stub
 }
 int Ultrasonic::getUltrasonic() {
-	process();
+	//process();
 	return ultrasonic_cm;
 }
 
 int Ultrasonic::getUltrasonic_inch() {
-	process();
+	//process();
 	return (int) (ultrasonic_cm / 2.54);
 }
 

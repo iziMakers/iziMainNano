@@ -6,7 +6,7 @@
  */
 
 #include "Joystick.h"
-#include <arduino.h>
+
 
 Joystick::Joystick() {
 	// TODO Auto-generated constructor stub
@@ -19,15 +19,15 @@ Joystick::~Joystick() {
 
 
 int Joystick::getJ1X() {
-	process();
+	//process();
 	return JOYSTICKS_J1X;
 }
 int Joystick::getJ1Y() {
-	process();
+	//process();
 	return JOYSTICKS_J1Y;
 }
 int Joystick::getJ1SW() {
-	process();
+	//process();
 	return JOYSTICKS_J1SW;
 }
 
@@ -79,7 +79,7 @@ void Joystick::processInput(unsigned long SN) {
 }
 
 void Joystick::processOutput() {
-	if (!sendOutput) {
+	if (!1/*sendOutput*/) {
 		if (millis() > JOYSTICKS_lastReceived + 300) {
 			if (isKnown(SN_Joystick)) {
 				aJsonObject* objectJSON = aJson.createObject();
@@ -98,8 +98,8 @@ void Joystick::processOutput() {
 					}
 					outBuffer_len = i;
 					free(msg);
-					sendOutput = true;
-					sendBus = bus(SN_Joystick);
+					//sendOutput = true;
+					//sendBus = bus(SN_Joystick);
 					Serial.println(":ok");
 				} else {
 					Serial.print(StrError);

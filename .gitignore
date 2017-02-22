@@ -1,0 +1,7 @@
+
+# Eclipse project files
+.settings
+Release/
+.cproject
+.ino.cpp
+.project

@@ -18,7 +18,7 @@ Servo::~Servo() {
 }
 
 void Servo::processOutput() {
-	if (!sendOutput) {
+	if (!1/*sendOutput*/) {
 		if (isKnown(SN_Servos)) {
 			boolean new_val = false;
 			for (int iiii = 0; iiii < 5; iiii++) {
@@ -60,8 +60,8 @@ void Servo::processOutput() {
 						free(msg);
 
 						//freeMem("freeMem");
-						sendOutput = true;
-						sendBus = bus(SN_Servos);
+						//sendOutput = true;
+						//sendBus = bus(SN_Servos);
 					} else {
 						Serial.print(StrError);
 						Serial.println(":json");

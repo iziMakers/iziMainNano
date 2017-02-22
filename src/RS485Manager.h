@@ -10,24 +10,43 @@
 
 #include <arduino.h>
 #include <SoftwareSerial.h>
+#include "aJSON.h"
 
-class RS485Manager {
+class RS485Manager: private SoftwareSerial {
 public:
-	RS485Manager();
+	RS485Manager(uint8_t receivePin, uint8_t transmitPin, bool inverse_logic =
+			false);
 	virtual ~RS485Manager();
 
 #define BUS_RS485   1
 
-#define RS485_PIN_RX  2
-#define RS485_PIN_TX  6
 #define RS485_PIN_RE  4
 #define RS485_PIN_DE  5
+
+	void setup();
+	void setRX();
+	void setTX();
+	void addIncomingChar(char inChar);
+	void RS484_read();
+	void send();
+	void MODULES_question();
+	long RS485_baudrate = 9600;   // 115200  57600
+
+	//TODO to delete i think
+	String StrModule = "module";
+	String StrIndent = "  ";
+	String StrError = "err";
+
+	char TrameByteStart = '{';
+	char TrameByteEnd = '}';
 
 #define INBUFFER_SIZE         128
 #define OUTBUFFER_SIZE        128
 
-	SoftwareSerial RS485_Serial;
-	long RS485_baudrate = 9600;   // 115200  57600
+	char inBuffer[INBUFFER_SIZE];
+	int inBuffer_i = 0;
+	char outBuffer[OUTBUFFER_SIZE];
+	int outBuffer_len = 0;
 
 	char RS485_inBuffer[INBUFFER_SIZE];
 	int RS485_inBuffer_i = 0;
@@ -38,18 +57,17 @@ public:
 	unsigned long RS485_lastSent = 0;
 	unsigned long RS485_lastRecevied = 0;
 
-	void setup();
 
-	void setRX();
 
-	void setTX();
+#define NB_MODULES_MAX    3
 
-	void addIncomingChar(char inChar);
+	int nb_modules = 0;
+	unsigned long modules_SN[NB_MODULES_MAX];
+	unsigned long modules_last[NB_MODULES_MAX];
+	String modules_Types[NB_MODULES_MAX] = { };
+	int modules_Bus[NB_MODULES_MAX];      // BUS_RS485 , BUS_SPI
 
-	void read();
-	void send();
-
-	void MODULES_question();
+//End TODO
 
 
 

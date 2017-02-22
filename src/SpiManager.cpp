@@ -20,7 +20,7 @@ SpiManager::~SpiManager() {
 
 void SpiManager::setup() {
 	beginSlaveTransaction();
-	attachInterrupt(digitalPinToInterrupt(SPI_SSinterruptPin), ssChange, CHANGE); // interrupt for SS rising edge
+	//attachInterrupt(digitalPinToInterrupt(SPI_SSinterruptPin), ssChange, CHANGE); // interrupt for SS rising edge
 }
 
 void SpiManager::ssChange() {
@@ -75,7 +75,7 @@ void SpiManager::beginSlaveTransaction() {
 }
 
 void SpiManager::send() {
-	if (sendOutput) {
+	if (1/*sendOutput*/) {
 
 		if (SPI_receiving) {
 			if (digitalRead(SPI_SSinterruptPin) == HIGH) {
@@ -112,7 +112,7 @@ void SpiManager::send() {
 						beginSlaveTransaction();
 
 						//outputString = "";
-						sendOutput = false;
+						//sendOutput = false;
 
 						Serial.println("");
 						SPI_TX_end_ms = millis();
@@ -144,7 +144,7 @@ void SpiManager::addIncomingChar(char inChar) {
 }
 
 void SpiManager::MODULES_question() {
-	if (!sendOutput) {
+	if (!1/*sendOutput*/) {
 		//measureDC();
 		if (millis() > SPI_lastSent + 3000) {
 			//printDC();
@@ -154,7 +154,7 @@ void SpiManager::MODULES_question() {
 			Serial.print("qm:");
 
 			if (objectJSON != NULL) {
-				aJson.addItemToObject(objectJSON, StrModule, aJson.createItem("?"));
+				aJson.addItemToObject(objectJSON, "module", aJson.createItem("?"));
 				char* msg = aJson.print(objectJSON);
 				//char* msg = "\"{\"module\":\"?\"}";
 				//Serial.println(msg);
@@ -167,8 +167,8 @@ void SpiManager::MODULES_question() {
 				}
 				outBuffer_len = i;
 				free(msg);
-				sendOutput = true;
-				sendBus = BUS_SPI;      // BUS_RS485
+				//sendOutput = true;
+				//sendBus = BUS_SPI;      // BUS_RS485
 
 				SPI_lastSent = millis();
 				//Serial.print("len:");

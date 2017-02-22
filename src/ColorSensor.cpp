@@ -6,8 +6,6 @@
  */
 
 #include "ColorSensor.h"
-#include <arduino.h>
-#include "aJSON.h"
 
 ColorSensor::ColorSensor() {
 	// TODO Auto-generated constructor stub
