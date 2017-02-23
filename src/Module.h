@@ -10,7 +10,8 @@
 
 #include <arduino.h>
 #include "aJSON.h"
-#include "Aspect.h"
+#include "CommunicationManager.h"
+//#include "Aspect.h"
 
 enum ModuleType {
 	mtWrong, mtJoystick, mtMotor, mtUltrasonic, mtColorSensor, mtServo, mtPixel
@@ -21,7 +22,9 @@ enum BusCommunication {
 
 class Module {
 public:
-	Module(ModuleType mt = mtWrong, BusCommunication busCom = bcWrong);
+	Module(ModuleType mt = mtWrong, BusCommunication busCom = bcWrong,
+			CommunicationManager* comManager = NULL, unsigned long serialNumber = 0,
+			unsigned long lastReading = 0);
 	virtual ~Module();
 	virtual void processInput(aJsonObject* root);
 	virtual void processOutput();
@@ -37,21 +40,14 @@ protected:
 	int getValueInt(aJsonObject* root, const char * id);
 	ModuleType mt;
 	BusCommunication busCom;
-	unsigned long serialNumber = 0;
-	unsigned long lastReading = 0;
+	CommunicationManager* comManager;
+	unsigned long serialNumber;
+	unsigned long lastReading;
 	unsigned long lastWriting = 0;
 	//TODO to delete i think
 	String StrModule = "module";
 	String StrIndent = "  ";
 	String StrError = "err";
-
-#define INBUFFER_SIZE         128
-#define OUTBUFFER_SIZE        128
-
-	char inBuffer[INBUFFER_SIZE];
-	int inBuffer_i = 0;
-	char outBuffer[OUTBUFFER_SIZE];
-	int outBuffer_len = 0;
 
 //End TODO
 };
