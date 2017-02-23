@@ -27,70 +27,44 @@ void Pixel::setup() {
 void Pixel::processOutput() {
 	if (isOneNewPixelColor) {
 		//if (millis() >= lastWriting + 1000) {
+
+		aJsonObject* objectJSON = aJson.createObject();
+		aJson.addItemToObject(objectJSON, "sn",
+				aJson.createItem((int) getSerialNumber()));
+		if (fireEffectActivated) {
+			aJson.addItemToObject(objectJSON, "fire", aJson.createItem(1));
+		} else {
+			char charBuf[3];
+			int nb_pixels = 5;
+			for (int iiii = 0; iiii < pixelMaxNomber; iiii++) {
+				if (isNewPixelColors[iiii] && nb_pixels > 0) {
+					itoa(iiii, charBuf, 3);
+					aJson.addItemToObject(objectJSON, charBuf,
+							aJson.createItem(pixelColors[iiii]));
+					isNewPixelColors[iiii] = false;
+					nb_pixels -= 1;
+				}
+			}
+			if (nb_pixels == 5) {
+				aJson.addItemToObject(objectJSON, "fire", aJson.createItem(0));
+			}
+		}
+
 		Serial.print(StrIndent);
 		Serial.print("Pout:");
-		aJsonObject* objectJSON = aJson.createObject();
-		if (objectJSON != NULL) {
-			aJson.addItemToObject(objectJSON, "sn",
-					aJson.createItem((int) getSerialNumber()));
+		sendOutput(objectJSON);
 
-			if (fireEffectActivated) {
-				aJson.addItemToObject(objectJSON, "fire", aJson.createItem(1));
-			} else {
-				char charBuf[3];
-				int nb_pixels = 5;
-				for (int iiii = 0; iiii < pixelMaxNomber; iiii++) {
-					if (isNewPixelColors[iiii] && nb_pixels > 0) {
-						itoa(iiii, charBuf, 3);
-						aJson.addItemToObject(objectJSON, charBuf,
-								aJson.createItem(pixelColors[iiii]));
-						isNewPixelColors[iiii] = false;
-						nb_pixels -= 1;
-					}
-				}
-				if (nb_pixels == 5) {
-					aJson.addItemToObject(objectJSON, "fire", aJson.createItem(0));
-				}
+		isOneNewPixelColor = false;
+		for (int iiii = 0; iiii < pixelMaxNomber; iiii++) {
+			if (isNewPixelColors[iiii]) {
+				isOneNewPixelColor = true;
 			}
-
-			/*if(PIXELS_new[1]) {
-			 aJson.addItemToObject(objectJSON, "1", aJson.createItem(PIXELS_pixel[1]));
-			 PIXELS_new[1] = false;
-			 }*/
-
-			char* msg = aJson.print(objectJSON);
-			Serial.print(msg);
-			int iiii = 0;
-			while (*(msg + iiii) != '\0') {
-				comManager->outBuffer[iiii] = *(msg + iiii);
-				iiii += 1;
-			}
-			comManager->outBuffer_len = iiii;
-			Serial.print(":");
-			Serial.println(comManager->outBuffer_len);
-			free(msg);
-
-			//freeMem("freeMem");
-			//sendOutput = true;
-			//sendBus = bus(SN_Pixels);
-
-			isOneNewPixelColor = false;
-			for (int iiii = 0; iiii < pixelMaxNomber; iiii++) {
-				if (isNewPixelColors[iiii]) {
-					isOneNewPixelColor = true;
-				}
-			}
-
-		} else {
-			Serial.print(StrError);
-			Serial.println(":json");
 		}
 		aJson.deleteItem(objectJSON);
 		lastWriting = millis();
-		// }
 	}
+
 }
-//comManager->send();
 
 void Pixel::setPixelColor(int pixel_num, int pixel_color) {
 	if (pixel_num > 0) {

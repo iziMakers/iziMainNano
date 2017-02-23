@@ -55,3 +55,23 @@ int Module::getValueInt(aJsonObject* root, const char * id) {
 	return NULL;
 }
 
+void Module::sendOutput(aJsonObject* objectJSON) {
+	if (objectJSON != NULL) {
+		char* msg = aJson.print(objectJSON);
+		int i = 0;
+		while (*(msg + i) != '\0') {
+			comManager->outBuffer[i] = *(msg + i);
+			i += 1;
+		}
+		comManager->outBuffer_len = i;
+		free(msg);
+		//freeMem("freeMem");
+		//comManager->send();
+		Serial.println(":ok");
+	} else {
+		Serial.print(StrError);
+		Serial.println(":json");
+	}
+
+}
+

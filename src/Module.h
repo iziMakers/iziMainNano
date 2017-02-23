@@ -38,6 +38,7 @@ public:
 
 protected:
 	int getValueInt(aJsonObject* root, const char * id);
+	void sendOutput(aJsonObject* objectJSON);
 	ModuleType mt;
 	BusCommunication busCom;
 	CommunicationManager* comManager;

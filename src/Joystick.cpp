@@ -70,27 +70,9 @@ void Joystick::processOutput() {
 
 			Serial.print(StrIndent);
 			Serial.print("Jout:");
-			if (objectJSON != NULL) {
-				char* msg = aJson.print(objectJSON);
-				int i = 0;
-				while (*(msg + i) != '\0') {
-					comManager->outBuffer[i] = *(msg + i);
-					Serial.write(comManager->outBuffer[i]);
-					i += 1;
-				}
-				comManager->outBuffer_len = i;
-				free(msg);
-				//sendOutput = true;
-				//sendBus = bus(SN_Joystick);
-				Serial.println(":ok");
-			} else {
-				Serial.print(StrError);
-				Serial.println(":");
-			}
+			sendOutput(objectJSON);
 			aJson.deleteItem(objectJSON);
-			//freeMem("freeMem");
 		}
 		lastReading = millis();
 	}
-	comManager->send();
 }
