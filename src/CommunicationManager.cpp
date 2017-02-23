@@ -17,7 +17,7 @@ CommunicationManager::~CommunicationManager() {
 }
 
 bool CommunicationManager::getStringComplete() {
-	return bReceiving;
+	return bStringComplete;
 }
 
 bool CommunicationManager::getReceiving() {

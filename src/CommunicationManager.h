@@ -29,6 +29,7 @@ public:
 	int dataBufferLength = 0;
 	boolean bStringComplete = false;  // whether the string is complete
 	boolean bReceiving = false;
+
 protected:
 
 	unsigned long lastSentQuestion = 0;
