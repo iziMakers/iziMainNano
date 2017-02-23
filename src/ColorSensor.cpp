@@ -7,13 +7,13 @@
 
 #include "ColorSensor.h"
 
-ColorSensor::ColorSensor() {
-	// TODO Auto-generated constructor stub
-
+ColorSensor::ColorSensor(ModuleType mt, BusCommunication busCom,
+		CommunicationManager* comManager, unsigned long serialNumber,
+		unsigned long lastReading, aJsonObject* root) :
+		Module(mt, busCom, comManager, serialNumber, lastReading, root) {
 }
 
 ColorSensor::~ColorSensor() {
-	// TODO Auto-generated destructor stub
 }
 
 void ColorSensor::processInput(aJsonObject* root) {
@@ -22,22 +22,22 @@ void ColorSensor::processInput(aJsonObject* root) {
 	if (root != NULL) {
 		int value = getValueInt(root, "H");
 		if (value != NULL) {
-			COLORSENSOR_H = value;
+			hue = value;
 			lastReading = millis();
 		}
 		value = getValueInt(root, "S");
 		if (value != NULL) {
-			COLORSENSOR_S = value;
+			saturation = value;
 			lastReading = millis();
 		}
 		value = getValueInt(root, "V");
 		if (value != NULL) {
-			COLORSENSOR_V = value;
+			iValue = value;
 			lastReading = millis();
 		}
 		value = getValueInt(root, "P");
 		if (value != NULL) {
-			COLORSENSOR_P = value;
+			preset = value;
 			lastReading = millis();
 		}
 	} else {
@@ -46,24 +46,22 @@ void ColorSensor::processInput(aJsonObject* root) {
 	}
 }
 
-
-
 int ColorSensor::getH() {
 	//process();
-	return COLORSENSOR_H;
+	return hue;
 }
 
 int ColorSensor::getS() {
 	//process();
-	return COLORSENSOR_S;
+	return saturation;
 }
 
 int ColorSensor::getV() {
 	//process();
-	return COLORSENSOR_V;
+	return iValue;
 }
 
 int ColorSensor::getP() {
 	//process();
-	return COLORSENSOR_P;
+	return preset;
 }

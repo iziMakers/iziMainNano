@@ -12,18 +12,19 @@
 
 class Ultrasonic: public Module {
 public:
-	Ultrasonic();
+	Ultrasonic(ModuleType mt = mtWrong, BusCommunication busCom = bcWrong,
+			CommunicationManager* comManager = NULL, unsigned long serialNumber = 0,
+			unsigned long lastReading = 0, aJsonObject* root = NULL);
 	virtual ~Ultrasonic();
 
-	int getUltrasonic();
-
-	int getUltrasonic_inch();
+	int getDistanceCm();
+	int getDistanceInch();
 
 	void processInput(aJsonObject* root);
 	void processOutput();
 
-	int ultrasonic_cm = 0;
-
+private:
+	int distanceCm = 0;
 
 };
 

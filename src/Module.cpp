@@ -9,15 +9,13 @@
 
 Module::Module(ModuleType mt, BusCommunication busCom,
 		CommunicationManager* comManager, unsigned long serialNumber,
-		unsigned long lastReading) :
+		unsigned long lastReading, aJsonObject* root) :
 		mt(mt), busCom(busCom), comManager(comManager), serialNumber(serialNumber), lastReading(
 				lastReading) {
-	// TODO Auto-generated constructor stub
-
+	processInput(root);
 }
 
 Module::~Module() {
-	// TODO Auto-generated destructor stub
 }
 void Module::processInput(aJsonObject* root) {
 }

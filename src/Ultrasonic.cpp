@@ -6,39 +6,37 @@
  */
 
 #include "Ultrasonic.h"
-#include <arduino.h>
 
-Ultrasonic::Ultrasonic() {
-	// TODO Auto-generated constructor stub
-
+Ultrasonic::Ultrasonic(ModuleType mt, BusCommunication busCom,
+		CommunicationManager* comManager, unsigned long serialNumber,
+		unsigned long lastReading, aJsonObject* root) :
+		Module(mt, busCom, comManager, serialNumber, lastReading, root) {
 }
 
 Ultrasonic::~Ultrasonic() {
-	// TODO Auto-generated destructor stub
 }
-int Ultrasonic::getUltrasonic() {
+int Ultrasonic::getDistanceCm() {
 	//process();
-	return ultrasonic_cm;
+	return distanceCm;
 }
 
-int Ultrasonic::getUltrasonic_inch() {
+int Ultrasonic::getDistanceInch() {
 	//process();
-	return (int) (ultrasonic_cm / 2.54);
+	return (int) (distanceCm / 2.54);
 }
 
 void Ultrasonic::processInput(aJsonObject* root) {
 	Serial.print(StrIndent);
 	Serial.println("Uin");
-				if (root != NULL) {
+	if (root != NULL) {
 		int value = getValueInt(root, "US");
 		if (value != NULL) {
-			ultrasonic_cm = value;
+			distanceCm = value;
 			lastReading = millis();
-					}
-					//aJson.deleteItem(obj);
-				} else {
-					Serial.print(StrError);
-					Serial.println(":USin");
-				}
-				aJson.deleteItem(root);
-			}
+		}
+	} else {
+		Serial.print(StrError);
+		Serial.println(":USin");
+	}
+	aJson.deleteItem(root);
+}

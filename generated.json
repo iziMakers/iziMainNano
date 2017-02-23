@@ -1,0 +1,37 @@
+[
+  { Joystick
+    "sn": int,
+    "JX": int,
+    "JY": int,
+    "JSW": int
+  },
+  { Ultrasonic
+    "sn": int,
+    "US": int
+  },
+  { Motors
+    "sn": int,
+    "a": int,
+    "b": int
+  },
+  { Pixels
+    "sn": int,
+    "fire": int,
+    "": int,
+    "": int
+  },
+  { Servos
+    "sn": int,
+    "": int,
+    "": int,
+    "": int,
+    "": int
+  },
+  { ColorSensor
+    "sn": int,
+    "H": int,
+    "S": int,
+    "V": int,
+	"P": int
+  }
+]

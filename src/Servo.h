@@ -12,16 +12,21 @@
 
 class Servo: public Module {
 public:
-	Servo();
+	Servo(ModuleType mt = mtWrong, BusCommunication busCom = bcWrong,
+			CommunicationManager* comManager = NULL, unsigned long serialNumber = 0,
+			unsigned long lastReading = 0, aJsonObject* root = NULL);
 	virtual ~Servo();
 
 	void processInput(aJsonObject* root);
 	void processOutput();
-	int SN_Servos = 102;
 
-	int SERVOS_Val[5] = { 0, 0, 0, 0, 0 };
-	int SERVOS_Val_target[5] = { 0, 0, 0, 0, 0 };
-	unsigned long SERVOS_last = 0;
+	void setServoAngle(uint8_t id, uint8_t angle);
+	uint8_t getServoTargetAngle(uint8_t id); // TODO usefull?
+	uint8_t getServoAngle(uint8_t id);
+
+private:
+	uint8_t servoAngles[5] = { 0, 0, 0, 0, 0 };
+	uint8_t servoTargetAngles[5] = { 0, 0, 0, 0, 0 };
 };
 
 #endif /* SRC_SERVO_H_ */

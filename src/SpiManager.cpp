@@ -7,16 +7,13 @@
 
 #include "SpiManager.h"
 
-
 SpiManager::SpiManager() {
 	// TODO Auto-generated constructor stub
-
 }
 
 SpiManager::~SpiManager() {
 	// TODO Auto-generated destructor stub
 }
-
 
 void SpiManager::setup() {
 	beginSlaveTransaction();
@@ -27,13 +24,10 @@ void SpiManager::ssChange() {
 	delayMicroseconds(1);
 	if (digitalRead(SPI_SSinterruptPin) == HIGH) { // RISING
 		if (bReceiving) {
-			//if(receiveBus == BUS_SPI) {
 			endRX();
-			//}
 		}
 	} else { // FALLING
 		bReceiving = true;
-		//receiveBus = BUS_SPI;
 	}
 }
 
@@ -41,12 +35,7 @@ void SpiManager::endRX() {
 	bReceiving = false;
 	if (dataBufferLength > 0) {
 		bStringComplete = true;
-		//Serial.print(StrIndent);
-		//Serial.print("RX:");
-		//Serial.println(SPI_inBuffer_i);
 	}
-
-	//receiveBus = BUS_SPI;
 	SPI_RX_end_ms = millis();
 }
 
@@ -75,48 +64,42 @@ void SpiManager::beginSlaveTransaction() {
 }
 
 void SpiManager::send() {
-	if (1/*sendOutput*/) {
-
-		if (bReceiving) {
-			if (digitalRead(SPI_SSinterruptPin) == HIGH) {
-				if (millis() > SPI_RX_start_ms + 10) {
-					Serial.print(StrIndent);
-					Serial.println("SPI end RX");
-					endRX();
-					//receiving = false;
-				}
+	if (bReceiving) {
+		if (digitalRead(SPI_SSinterruptPin) == HIGH) {
+			if (millis() > SPI_RX_start_ms + 10) {
+				Serial.print(StrIndent);
+				Serial.println("SPI end RX");
+				endRX();
+				//receiving = false;
 			}
 		}
+	}
 
-		if (!bReceiving) {
-			if (millis() > SPI_RX_end_ms + 2) {
-				if (millis() > SPI_TX_end_ms + 10) {
-					if (digitalRead(SPI_SSinterruptPin) == HIGH) {
+	if (!bReceiving) {
+		if (millis() > SPI_RX_end_ms + 2) {
+			if (millis() > SPI_TX_end_ms + 10) {
+				if (digitalRead(SPI_SSinterruptPin) == HIGH) {
 
-						beginMasterTransaction();
-						// enable Slave Select
-						digitalWrite(SS, LOW);
+					beginMasterTransaction();
+					// enable Slave Select
+					digitalWrite(SS, LOW);
 
-						Serial.print("SPI<");
+					Serial.print("SPI<");
 
-						for (int i = 0; i < outBuffer_len; i++) {
-							Serial.print(outBuffer[i]);
-							//if(i + 1 == outBuffer_len) {
-							//Serial.print('\n');
-							//}
-							transferAndWait(outBuffer[i]);
-						}
-
-						// disable Slave Select
-						digitalWrite(SS, HIGH);
-						beginSlaveTransaction();
-
-						//outputString = "";
-						//sendOutput = false;
-
-						Serial.println("");
-						SPI_TX_end_ms = millis();
+					for (int i = 0; i < outBuffer_len; i++) {
+						Serial.print(outBuffer[i]);
+						//if(i + 1 == outBuffer_len) {
+						//Serial.print('\n');
+						//}
+						transferAndWait(outBuffer[i]);
 					}
+
+					// disable Slave Select
+					digitalWrite(SS, HIGH);
+					beginSlaveTransaction();
+
+					Serial.println("");
+					SPI_TX_end_ms = millis();
 				}
 			}
 		}

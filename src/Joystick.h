@@ -12,22 +12,23 @@
 
 class Joystick: public Module {
 public:
-	Joystick();
+	Joystick(ModuleType mt = mtWrong, BusCommunication busCom = bcWrong,
+			CommunicationManager* comManager = NULL, unsigned long serialNumber = 0,
+			unsigned long lastReading = 0, aJsonObject* root = NULL);
 	virtual ~Joystick();
-
-	int getJ1X();
-	int getJ1Y();
-	int getJ1SW();
 
 	void processInput(aJsonObject* root);
 	void processOutput();
 
-	int JOYSTICKS_J1X = 0;
-	int JOYSTICKS_J1Y = 0;
-	int JOYSTICKS_J1SW = 0;
-	int JOYSTICKS_J2X = 0;
-	int JOYSTICKS_J2Y = 0;
-	int JOYSTICKS_J2SW = 0;
+	int getAxeX();
+	int getAxeY();
+	bool isPressed();
+
+
+private:
+	int axeX = 0;
+	int axeY = 0;
+	bool buttonState = false;
 };
 
 #endif /* SRC_JOYSTICK_H_ */

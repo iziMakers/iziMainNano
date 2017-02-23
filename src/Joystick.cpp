@@ -7,26 +7,26 @@
 
 #include "Joystick.h"
 
-Joystick::Joystick() {
-	// TODO Auto-generated constructor stub
-
+Joystick::Joystick(ModuleType mt, BusCommunication busCom,
+		CommunicationManager* comManager, unsigned long serialNumber,
+		unsigned long lastReading, aJsonObject* root) :
+		Module(mt, busCom, comManager, serialNumber, lastReading, root) {
 }
 
 Joystick::~Joystick() {
-	// TODO Auto-generated destructor stub
 }
 
-int Joystick::getJ1X() {
+int Joystick::getAxeX() {
 	//process();
-	return JOYSTICKS_J1X;
+	return axeX;
 }
-int Joystick::getJ1Y() {
+int Joystick::getAxeY() {
 	//process();
-	return JOYSTICKS_J1Y;
+	return axeY;
 }
-int Joystick::getJ1SW() {
+bool Joystick::isPressed() {
 	//process();
-	return JOYSTICKS_J1SW;
+	return buttonState;
 }
 
 void Joystick::processInput(aJsonObject* root) {
@@ -36,17 +36,21 @@ void Joystick::processInput(aJsonObject* root) {
 	if (root != NULL) {
 		value = getValueInt(root, "JX");
 		if (value != NULL) {
-			JOYSTICKS_J1X = value;
+			axeX = value;
 			lastReading = millis();
 		}
 		value = getValueInt(root, "JY");
 		if (value != NULL) {
-			JOYSTICKS_J1Y = value;
+			axeY = value;
 			lastReading = millis();
 		}
 		value = getValueInt(root, "JSW");
 		if (value != NULL) {
-			JOYSTICKS_J1SW = value;
+			if (value != 0) {
+				buttonState = true;
+			} else {
+				buttonState = false;
+			}
 			lastReading = millis();
 		}
 	} else {

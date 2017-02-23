@@ -24,7 +24,7 @@ class Module {
 public:
 	Module(ModuleType mt = mtWrong, BusCommunication busCom = bcWrong,
 			CommunicationManager* comManager = NULL, unsigned long serialNumber = 0,
-			unsigned long lastReading = 0);
+			unsigned long lastReading = 0, aJsonObject* root = NULL);
 	virtual ~Module();
 	virtual void processInput(aJsonObject* root);
 	virtual void processOutput();
@@ -48,8 +48,7 @@ protected:
 	String StrModule = "module";
 	String StrIndent = "  ";
 	String StrError = "err";
-
-//End TODO
+	//End TODO
 };
 
 #endif /* SRC_MODULE_H_ */

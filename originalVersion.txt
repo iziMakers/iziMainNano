@@ -939,6 +939,7 @@ void SERVOS_processOutput() {
 					Serial.print(StrIndent);
 					Serial.print("Sout:");
 					aJsonObject* objectJSON = aJson.createObject();
+					
 					if (objectJSON != NULL) {
 						aJson.addItemToObject(objectJSON, "sn",
 								aJson.createItem(SN_Servos));

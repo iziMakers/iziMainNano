@@ -11,30 +11,28 @@
 
 class Pixel: public Module {
 public:
-	Pixel();
+	Pixel(ModuleType mt = mtWrong, BusCommunication busCom = bcWrong,
+			CommunicationManager* comManager = NULL, unsigned long serialNumber = 0,
+			unsigned long lastReading = 0, aJsonObject* root = NULL);
 	virtual ~Pixel();
 
 	void setup();
 	void processInput(aJsonObject* root);
 	void processOutput();
-	void set(int pixel_num, int pixel_color);
-	void set_hsl(int pixel_num, double h, double s, double l);
+	void setPixelColor(int pixel_num, int pixel_color);
+	void setPixelHSL(int pixel_num, double h, double s, double l);
+	void setFireOn(boolean val);
 
-	void set_fire(boolean val);
+private:
+	void hslToRgb(float h, float s, float l, byte rgb[]);
+	float hue2rgb(float p, float q, float t);
 
-	void hslToRgb(double h, double s, double l, byte rgb[]);
-	double hue2rgb(double p, double q, double t);
+	const static uint8_t pixelMaxNomber = 100;
+	int pixelColors[pixelMaxNomber];
+	boolean isNewPixelColors[pixelMaxNomber];
+	boolean isOneNewPixelColor = false;
 
-#define PIXELS_MAX    100
-	int SN_Pixels = 103;
-
-	boolean PIXELS_new_value = false;
-	int PIXELS_pixel[PIXELS_MAX];
-	boolean PIXELS_new[PIXELS_MAX];
-
-	boolean PIXELS_effect_fire = false;
-
-	unsigned long PIXELS_last = 0;
+	boolean fireEffectActivated = false;
 };
 
 #endif /* SRC_PIXEL_H_ */
