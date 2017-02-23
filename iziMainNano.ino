@@ -49,12 +49,11 @@ void process();
 
 long baudrate_PC = 115200;
 
+char StrModule[] = "module";
+char StrIndent[] = "  ";
+char StrError[] = "err";
 
- char StrModule[] = "module";
- char StrIndent[] = "  ";
- char StrError[] = "err";
-
- char TrameByteStart = '{';
+char TrameByteStart = '{';
 char TrameByteEnd = '}';
 
 // SPI interrupt routine
@@ -130,11 +129,6 @@ void pause(unsigned long length_ms) {     // pause qui ne bloque le process
 }
 
 void process() {
-	//char inBuffer[INBUFFER_SIZE];
-	//char JsonBuffer[JSON_BUFFER_SIZE];
-	bool parseSuccess = false;
-	bool stringComplete = false;
-	bool stringProcessed = false;
 	ModuleType moduleType = mtWrong;
 	unsigned long serialNumber = 0;
 	BusCommunication receiveBus = bcWrong;                  // BUS_RS485 , BUS_SPI
@@ -164,7 +158,6 @@ void process() {
 		RS485.bStringComplete = false;     // notify that the buffer is treated
 
 		receiveBus = bcRS485;
-		stringComplete = true;
 		DEBUG_PRINT(millis());
 		DEBUG_PRINT(" RS485>");
 
@@ -178,74 +171,56 @@ void process() {
 		SPI.bStringComplete = false;         // notify that the buffer is treated
 
 		receiveBus = bcSPI;
-		stringComplete = true;
 		DEBUG_PRINT(millis());
 		DEBUG_PRINT(" SPI>");
 
 	} else {
 		receiveBus = bcWrong;
-		stringComplete = false;
 		DEBUG_PRINT(" ?");
+		return;
 
 	}
 
-	if (stringComplete) {
-		if (root != NULL) {
-			aJsonObject* sn = aJson.getObjectItem(root, "sn");
-			if (sn != NULL) {
-				serialNumber = sn->valueint;    //valueint      root["sn"];
-				Module* existing = Module_getModule(serialNumber);
-				if (existing == NULL) {
-					Module newModule(mtWrong, receiveBus); // TODO add Module type
-					newModule.setLastReading(millis());
-					newModule.processInput(root);
-					modules[nb_modules] = newModule;
-					nb_modules += 1;
+	if (root != NULL) {
+		aJsonObject* sn = aJson.getObjectItem(root, "sn");
+		if (sn != NULL) {
+			serialNumber = sn->valueint;    //valueint      root["sn"];
+			Module* existing = Module_getModule(serialNumber);
+			if (existing == NULL) {
+				Module newModule(mtWrong, receiveBus); // TODO add Module type
+				newModule.setLastReading(millis());
+				newModule.processInput(root);
+				modules[nb_modules] = newModule;
+				nb_modules += 1;
 
-					DEBUG_PRINT(StrIndent);
-					DEBUG_PRINT("New:");
-					DEBUG_PRINTLN(serialNumber);
-				} else {
-					existing->processInput(root);
-
-					DEBUG_PRINT(StrIndent);
-					DEBUG_PRINT("Mod:");
-					DEBUG_PRINTLN(serialNumber);
-				}
-				parseSuccess = true;
+				DEBUG_PRINT(StrIndent);
+				DEBUG_PRINT("New:");
+				DEBUG_PRINTLN(serialNumber);
 			} else {
-				Serial.print(StrError);
-				Serial.println(":no \"sn\"");
+				existing->processInput(root);
+
+				DEBUG_PRINT(StrIndent);
+				DEBUG_PRINT("Mod:");
+				DEBUG_PRINTLN(serialNumber);
 			}
-			//aJson.deleteItem(sn);
 		} else {
 			Serial.print(StrError);
-			Serial.println(":parse");
+			Serial.println(":no \"sn\"");
 		}
-		aJson.deleteItem(root);
+		//aJson.deleteItem(sn);
+	} else {
+		Serial.print(StrError);
+		Serial.println(":parse");
 	}
-	stringProcessed = true;
-	stringComplete = false;
-
-
-
-// time to send
-
-	RS485.MODULES_question();
-	SPI.MODULES_question();
-	/*SERVOS_processOutput(); // TODO
-	 JOYSTICKS_processOutput();
-	 MOTORS_processOutput();
-
-	if (sendBus == BUS_RS485) {
-		RS485.send();
-	} else if (sendBus == BUS_SPI) {
-		SPI.send();
-	 }*/
+	aJson.deleteItem(root);
 }
 
-// loop ****************
+// TODO how to support it, it was in the process
+/*
+ RS485.MODULES_question();
+ SPI.MODULES_question();*/
 
+// loop ****************
 void loop() { // run over and over
 	while (true) {
 		process();

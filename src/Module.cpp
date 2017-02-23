@@ -7,8 +7,11 @@
 
 #include "Module.h"
 
-Module::Module(ModuleType mt, BusCommunication busCom) :
-		mt(mt), busCom(busCom) {
+Module::Module(ModuleType mt, BusCommunication busCom,
+		CommunicationManager* comManager, unsigned long serialNumber,
+		unsigned long lastReading) :
+		mt(mt), busCom(busCom), comManager(comManager), serialNumber(serialNumber), lastReading(
+				lastReading) {
 	// TODO Auto-generated constructor stub
 
 }
@@ -17,7 +20,6 @@ Module::~Module() {
 	// TODO Auto-generated destructor stub
 }
 void Module::processInput(aJsonObject* root) {
-	;
 }
 void Module::processOutput() {
 }
@@ -36,7 +38,6 @@ unsigned long Module::getLastReading() {
 void Module::setLastReading(unsigned long date) {
 	lastReading = date;
 }
-
 unsigned long Module::getLastWriting() {
 	return lastWriting;
 }

@@ -16,14 +16,16 @@ public:
 	virtual ~SpiManager();
 
 	void setup();
+	void send();
+	void addIncomingChar(char inChar);
+	void MODULES_question();
+
 	void ssChange();
 	void endRX();
 	byte transferAndWait(const byte value);
 	void beginMasterTransaction();
 	void beginSlaveTransaction();
-	void send();
-	void addIncomingChar(char inChar);
-	void MODULES_question();
+
 
 
 	unsigned long SPI_RX_start_ms = 0;

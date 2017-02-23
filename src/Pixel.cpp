@@ -62,12 +62,12 @@ void Pixel::processOutput() {
 				Serial.print(msg);
 				int iiii = 0;
 				while (*(msg + iiii) != '\0') {
-					outBuffer[iiii] = *(msg + iiii);
+					comManager->outBuffer[iiii] = *(msg + iiii);
 					iiii += 1;
 				}
-				outBuffer_len = iiii;
+				comManager->outBuffer_len = iiii;
 				Serial.print(":");
-				Serial.println(outBuffer_len);
+				Serial.println(comManager->outBuffer_len);
 				free(msg);
 
 				//freeMem("freeMem");
@@ -90,6 +90,7 @@ void Pixel::processOutput() {
 			// }
 		}
 	}
+	//comManager->send();
 }
 
 void Pixel::set(int pixel_num, int pixel_color) {

@@ -49,12 +49,12 @@ void Servo::processOutput() {
 					Serial.print(msg);
 					int i = 0;
 					while (*(msg + i) != '\0') {
-						outBuffer[i] = *(msg + i);
+						comManager->outBuffer[i] = *(msg + i);
 						i += 1;
 					}
-					outBuffer_len = i;
+					comManager->outBuffer_len = i;
 					Serial.print(":");
-					Serial.println(outBuffer_len);
+					Serial.println(comManager->outBuffer_len);
 					free(msg);
 
 					//freeMem("freeMem");
@@ -69,4 +69,5 @@ void Servo::processOutput() {
 			}
 		}
 	}
+	//comManager->send();
 }

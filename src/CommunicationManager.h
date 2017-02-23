@@ -14,12 +14,14 @@
 class CommunicationManager {
 public:
 	CommunicationManager();
-	virtual ~CommunicationManager();
-	bool getStringComplete();bool getReceiving();
+	virtual ~CommunicationManager();bool getStringComplete();bool getReceiving();
+	virtual void setup();
+	virtual void send();
+	virtual void addIncomingChar(char inChar);
+	virtual void MODULES_question();
 
 #define INBUFFER_SIZE         128
 #define OUTBUFFER_SIZE        128
-
 
 	char inBuffer[INBUFFER_SIZE];
 	int inBuffer_i = 0;
@@ -35,7 +37,6 @@ protected:
 	unsigned long lastSentQuestion = 0;
 	unsigned long RS485_lastRecevied = 0;
 
-
 	//TODO to delete i think
 	String StrModule = "module";
 	String StrIndent = "  ";
@@ -46,7 +47,6 @@ protected:
 #define BUS_RS485   1
 #define BUS_SPI     2
 	//End TODO
-
 
 };
 

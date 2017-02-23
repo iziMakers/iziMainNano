@@ -19,12 +19,14 @@ public:
 	virtual ~RS485Manager();
 
 	void setup();
+	void send();
+	void addIncomingChar(char inChar);
+	void MODULES_question();
+
 	void setRX();
 	void setTX();
-	void addIncomingChar(char inChar);
 	void RS484_read();
-	void send();
-	void MODULES_question();
+
 
 
 private:

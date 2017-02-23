@@ -11,20 +11,16 @@
 #include <SoftwareSerial.h>
 
 RS485Manager::RS485Manager(uint8_t receivePin, uint8_t transmitPin,
-		uint8_t rePin = 4, uint8_t dePin = 5, long baudrate = 9600,
-		bool inverse_logic =
-		false) :
+		uint8_t rePin, uint8_t dePin, long baudrate,
+		bool inverse_logic) :
 		SoftwareSerial(receivePin, transmitPin, inverse_logic), rePin(rePin), dePin(
 				dePin), baudrate(baudrate) {
-
 
 }
 
 RS485Manager::~RS485Manager() {
 	// TODO Auto-generated destructor stub
 }
-
-
 
 void RS485Manager::setup() {
 	// set the data rate for the SoftwareSerial port

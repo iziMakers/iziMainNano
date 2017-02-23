@@ -23,3 +23,11 @@ bool CommunicationManager::getStringComplete() {
 bool CommunicationManager::getReceiving() {
 	return bReceiving;
 }
+void CommunicationManager::setup() {
+}
+void CommunicationManager::send() {
+}
+void CommunicationManager::addIncomingChar(char inChar) {
+}
+void CommunicationManager::MODULES_question() {
+}
