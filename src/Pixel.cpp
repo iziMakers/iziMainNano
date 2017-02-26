@@ -23,7 +23,9 @@ void Pixel::setup() {
 	}
 	//processOutput()
 }
+/*void Pixel::processSpecificInput(aJsonObject* root) {
 
+ }*/
 void Pixel::processOutput() {
 	if (isOneNewPixelColor) {
 		//if (millis() >= lastWriting + 1000) {

@@ -19,7 +19,7 @@ public:
 	int getS();
 	int getV();
 	int getP();
-	void processInput(aJsonObject* root);
+	void processSpecificInput(aJsonObject* root);
 
 private:
 	int red = 0;

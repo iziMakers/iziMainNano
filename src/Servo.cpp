@@ -30,45 +30,25 @@ void Servo::processOutput() {
 				Serial.print(StrIndent);
 				Serial.print("Sout:");
 				aJsonObject* objectJSON = aJson.createObject();
-				if (objectJSON != NULL) {
-					aJson.addItemToObject(objectJSON, "sn",
-							aJson.createItem((int) getSerialNumber()));
-					char buf[2];
-					for (int iiii = 0; iiii < 5; iiii++) {
-						if (servoAngles[iiii] != servoTargetAngles[iiii]) {
-							itoa(iiii + 1, buf, 10);
-							aJson.addItemToObject(objectJSON, buf,
-									aJson.createItem(servoTargetAngles[iiii]));
+				aJson.addItemToObject(objectJSON, "sn",
+						aJson.createItem((int) getSerialNumber()));
+				char buf[2];
+				for (int iiii = 0; iiii < 5; iiii++) {
+					if (servoAngles[iiii] != servoTargetAngles[iiii]) {
+						itoa(iiii + 1, buf, 10);
+						aJson.addItemToObject(objectJSON, buf,
+								aJson.createItem(servoTargetAngles[iiii]));
 
-							servoAngles[iiii] = servoTargetAngles[iiii];
-						}
+						servoAngles[iiii] = servoTargetAngles[iiii];
 					}
-
-					char* msg = aJson.print(objectJSON);
-					Serial.print(msg);
-					int i = 0;
-					while (*(msg + i) != '\0') {
-						comManager->outBuffer[i] = *(msg + i);
-						i += 1;
-					}
-					comManager->outBuffer_len = i;
-					Serial.print(":");
-					Serial.println(comManager->outBuffer_len);
-					free(msg);
-
-					//freeMem("freeMem");
-					//sendOutput = true;
-					//sendBus = bus(SN_Servos);
-				} else {
-					Serial.print(StrError);
-					Serial.println(":json");
 				}
+
+				sendOutput(objectJSON);
 				aJson.deleteItem(objectJSON);
 				lastWriting = millis();
 			}
 		}
 	}
-	//comManager->send();
 }
 
 void Servo::setServoAngle(uint8_t id, uint8_t angle) {

@@ -20,7 +20,7 @@ public:
 	int getDistanceCm();
 	int getDistanceInch();
 
-	void processInput(aJsonObject* root);
+	void processSpecificInput(aJsonObject* root);
 	void processOutput();
 
 private:

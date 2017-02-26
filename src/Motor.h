@@ -16,7 +16,7 @@ public:
 			unsigned long lastReading = 0, aJsonObject* root = NULL);
 	virtual ~Motor();
 
-	void processInput(aJsonObject* root);
+	void processSpecificInput(aJsonObject* root);
 	void processOutput();
 
 	int getMotorA_speed();

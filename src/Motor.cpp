@@ -16,26 +16,19 @@ Motor::Motor(ModuleType mt, BusCommunication busCom,
 Motor::~Motor() {
 }
 
-void Motor::processInput(aJsonObject* root) {
-	Serial.print(StrIndent);
+void Motor::processSpecificInput(aJsonObject* root) {
 	Serial.print("Min");
 	int value;
-	if (root != NULL) {
-		value = getValueInt(root, "a");
-		if (value != NULL) {
-			motorA_speed = value;
-			lastReading = millis();
-		}
-		value = getValueInt(root, "b");
-		if (value != NULL) {
-			motorB_speed = value;
-			lastReading = millis();
-		}
-	} else {
-		Serial.print(StrError);
-		Serial.println(":Min");
+	value = getValueInt(root, "a");
+	if (value != NULL) {
+		motorA_speed = value;
+		lastReading = millis();
 	}
-	aJson.deleteItem(root);
+	value = getValueInt(root, "b");
+	if (value != NULL) {
+		motorB_speed = value;
+		lastReading = millis();
+	}
 }
 
 void Motor::processOutput() {

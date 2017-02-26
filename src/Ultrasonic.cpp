@@ -25,18 +25,11 @@ int Ultrasonic::getDistanceInch() {
 	return (int) (distanceCm / 2.54);
 }
 
-void Ultrasonic::processInput(aJsonObject* root) {
-	Serial.print(StrIndent);
+void Ultrasonic::processSpecificInput(aJsonObject* root) {
 	Serial.println("Uin");
-	if (root != NULL) {
-		int value = getValueInt(root, "US");
-		if (value != NULL) {
-			distanceCm = value;
-			lastReading = millis();
-		}
-	} else {
-		Serial.print(StrError);
-		Serial.println(":USin");
+	int value = getValueInt(root, "US");
+	if (value != NULL) {
+		distanceCm = value;
+		lastReading = millis();
 	}
-	aJson.deleteItem(root);
 }

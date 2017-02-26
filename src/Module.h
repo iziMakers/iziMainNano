@@ -27,6 +27,7 @@ public:
 			unsigned long lastReading = 0, aJsonObject* root = NULL);
 	virtual ~Module();
 	virtual void processInput(aJsonObject* root);
+	virtual void processSpecificInput(aJsonObject* root);
 	virtual void processOutput();
 	ModuleType getType();
 	BusCommunication getBusCom();
@@ -46,7 +47,7 @@ protected:
 	unsigned long lastReading;
 	unsigned long lastWriting = 0;
 	//TODO to delete i think
-	String StrModule = "module";
+	//String StrModule = "module";
 	String StrIndent = "  ";
 	String StrError = "err";
 	//End TODO

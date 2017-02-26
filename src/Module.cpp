@@ -18,6 +18,16 @@ Module::Module(ModuleType mt, BusCommunication busCom,
 Module::~Module() {
 }
 void Module::processInput(aJsonObject* root) {
+	Serial.print(StrIndent);
+	if (root != NULL) {
+		processSpecificInput(root);
+	} else {
+		Serial.print(StrError);
+		Serial.println(":");
+	}
+	aJson.deleteItem(root);
+}
+void Module::processSpecificInput(aJsonObject* root) {
 }
 void Module::processOutput() {
 }

@@ -17,7 +17,7 @@ public:
 	virtual ~Pixel();
 
 	void setup();
-	void processInput(aJsonObject* root);
+	void processSpecificInput(aJsonObject* root);
 	void processOutput();
 	void setPixelColor(int pixel_num, int pixel_color);
 	void setPixelHSL(int pixel_num, double h, double s, double l);

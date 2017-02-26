@@ -17,7 +17,7 @@ public:
 			unsigned long lastReading = 0, aJsonObject* root = NULL);
 	virtual ~Joystick();
 
-	void processInput(aJsonObject* root);
+	void processSpecificInput(aJsonObject* root);
 	void processOutput();
 
 	int getAxeX();

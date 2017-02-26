@@ -16,33 +16,26 @@ ColorSensor::ColorSensor(ModuleType mt, BusCommunication busCom,
 ColorSensor::~ColorSensor() {
 }
 
-void ColorSensor::processInput(aJsonObject* root) {
-	Serial.print(StrIndent);
-	Serial.print("Cin");
-	if (root != NULL) {
-		int value = getValueInt(root, "H");
-		if (value != NULL) {
-			hue = value;
-			lastReading = millis();
-		}
-		value = getValueInt(root, "S");
-		if (value != NULL) {
-			saturation = value;
-			lastReading = millis();
-		}
-		value = getValueInt(root, "V");
-		if (value != NULL) {
-			iValue = value;
-			lastReading = millis();
-		}
-		value = getValueInt(root, "P");
-		if (value != NULL) {
-			preset = value;
-			lastReading = millis();
-		}
-	} else {
-		Serial.print(StrError);
-		Serial.println(":");
+void ColorSensor::processSpecificInput(aJsonObject* root) {
+	int value = getValueInt(root, "H");
+	if (value != NULL) {
+		hue = value;
+		lastReading = millis();
+	}
+	value = getValueInt(root, "S");
+	if (value != NULL) {
+		saturation = value;
+		lastReading = millis();
+	}
+	value = getValueInt(root, "V");
+	if (value != NULL) {
+		iValue = value;
+		lastReading = millis();
+	}
+	value = getValueInt(root, "P");
+	if (value != NULL) {
+		preset = value;
+		lastReading = millis();
 	}
 }
 

@@ -28,36 +28,28 @@ bool Joystick::isPressed() {
 	//process();
 	return buttonState;
 }
-
-void Joystick::processInput(aJsonObject* root) {
-	Serial.print(StrIndent);
+void Joystick::processSpecificInput(aJsonObject* root) {
 	Serial.println("Jin");
 	int value;
-	if (root != NULL) {
-		value = getValueInt(root, "JX");
-		if (value != NULL) {
-			axeX = value;
-			lastReading = millis();
-		}
-		value = getValueInt(root, "JY");
-		if (value != NULL) {
-			axeY = value;
-			lastReading = millis();
-		}
-		value = getValueInt(root, "JSW");
-		if (value != NULL) {
-			if (value != 0) {
-				buttonState = true;
-			} else {
-				buttonState = false;
-			}
-			lastReading = millis();
-		}
-	} else {
-		Serial.print(StrError);
-		Serial.println(":");
+	value = getValueInt(root, "JX");
+	if (value != NULL) {
+		axeX = value;
+		lastReading = millis();
 	}
-	aJson.deleteItem(root);
+	value = getValueInt(root, "JY");
+	if (value != NULL) {
+		axeY = value;
+		lastReading = millis();
+	}
+	value = getValueInt(root, "JSW");
+	if (value != NULL) {
+		if (value != 0) {
+			buttonState = true;
+		} else {
+			buttonState = false;
+		}
+		lastReading = millis();
+	}
 }
 
 void Joystick::processOutput() {
