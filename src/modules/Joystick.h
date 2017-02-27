@@ -5,8 +5,8 @@
  *      Author: Bruno
  */
 
-#ifndef SRC_JOYSTICK_H_
-#define SRC_JOYSTICK_H_
+#ifndef SRC_MODULES_JOYSTICK_H_
+#define SRC_MODULES_JOYSTICK_H_
 
 #include "Module.h"
 
@@ -20,19 +20,16 @@ public:
 	void sendJson();
 
 	int getAxeX();
-	int getAxeY();
-	bool isPressed();
-
+	int getAxeY();bool isPressed();
 
 private:
 	char* parameterNames[4] = { "sn", "JX", "JY", "JSW" };
 	int axeX = 0;
-	int axeY = 0;
-	bool buttonState = false;
+	int axeY = 0;bool buttonState = false;
 
 	void processSpecificInput(aJsonObject* root);
 	void setFromJson(int id, int value);
 	aJsonObject* toJson();
 };
 
-#endif /* SRC_JOYSTICK_H_ */
+#endif /* SRC_MODULES_JOYSTICK_H_ */

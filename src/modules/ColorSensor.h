@@ -5,8 +5,8 @@
  *      Author: Bruno
  */
 
-#ifndef SRC_COLORSENSOR_H_
-#define SRC_COLORSENSOR_H_
+#ifndef SRC_MODULES_COLORSENSOR_H_
+#define SRC_MODULES_COLORSENSOR_H_
 #include "Module.h"
 
 class ColorSensor: public Module {
@@ -36,4 +36,4 @@ private:
 
 };
 
-#endif /* SRC_COLORSENSOR_H_ */
+#endif /* SRC_MODULES_COLORSENSOR_H_ */

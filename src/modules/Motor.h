@@ -5,8 +5,8 @@
  *      Author: Bruno
  */
 
-#ifndef SRC_MOTOR_H_
-#define SRC_MOTOR_H_
+#ifndef SRC_MODULES_MOTOR_H_
+#define SRC_MODULES_MOTOR_H_
 #include "Module.h"
 
 class Motor: public Module {
@@ -39,4 +39,4 @@ private:
 
 };
 
-#endif /* SRC_MOTOR_H_ */
+#endif /* SRC_MODULES_MOTOR_H_ */

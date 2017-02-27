@@ -5,8 +5,8 @@
  *      Author: Bruno
  */
 
-#ifndef SRC_PIXEL_H_
-#define SRC_PIXEL_H_
+#ifndef SRC_MODULES_PIXEL_H_
+#define SRC_MODULES_PIXEL_H_
 #include "Module.h"
 
 class Pixel: public Module {
@@ -35,4 +35,4 @@ private:
 	float hue2rgb(float p, float q, float t);
 };
 
-#endif /* SRC_PIXEL_H_ */
+#endif /* SRC_MODULES_PIXEL_H_ */

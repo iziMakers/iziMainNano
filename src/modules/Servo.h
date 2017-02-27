@@ -5,8 +5,8 @@
  *      Author: Bruno
  */
 
-#ifndef SRC_SERVO_H_
-#define SRC_SERVO_H_
+#ifndef SRC_MODULES_SERVO_H_
+#define SRC_MODULES_SERVO_H_
 #include "Module.h"
 
 class Servo: public Module {
@@ -32,4 +32,4 @@ private:
 	aJsonObject* toJson();
 };
 
-#endif /* SRC_SERVO_H_ */
+#endif /* SRC_MODULES_SERVO_H_ */

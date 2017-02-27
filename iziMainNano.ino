@@ -21,30 +21,30 @@ void process();
 #define MODULE_SERVO        true
 #define MODULE_PIXELS       true
 
-#include "src/Module.h"
+#include "src/modules/Module.h"
 
 #if MODULE_JOYSTICKS
-#include "src/Joystick.h"
+#include "src/modules/Joystick.h"
 #endif
 
 #if MODULE_MOTORS
-#include "src/Motor.h"
+#include "src/modules/Motor.h"
 #endif
 
 #if MODULE_ULTRASONIC
-#include "src/Ultrasonic.h"
+#include "src/modules/Ultrasonic.h"
 #endif
 
 #if MODULE_COLORSENSOR
-#include "src/ColorSensor.h"
+#include "src/modules/ColorSensor.h"
 #endif
 
 #if MODULE_SERVO
-#include "src/Servo.h"
+#include "src/modules/Servo.h"
 #endif
 
 #if MODULE_PIXELS
-#include "src/Pixel.h"
+#include "src/modules/Pixel.h"
 #endif
 
 long baudrate_PC = 115200;

@@ -5,8 +5,8 @@
  *      Author: Bruno
  */
 
-#ifndef SRC_ULTRASONIC_H_
-#define SRC_ULTRASONIC_H_
+#ifndef SRC_MODULES_ULTRASONIC_H_
+#define SRC_MODULES_ULTRASONIC_H_
 
 #include "Module.h"
 
@@ -28,4 +28,4 @@ private:
 
 };
 
-#endif /* SRC_ULTRASONIC_H_ */
+#endif /* SRC_MODULES_ULTRASONIC_H_ */

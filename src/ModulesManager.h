@@ -1,6 +1,6 @@
 #ifndef MODULES_MANAGER_H
 #define MODULES_MANAGER_H
-#include "Module.h"
+#include "modules/Module.h"
 
 Module* Module_getModule(unsigned long sn);
 

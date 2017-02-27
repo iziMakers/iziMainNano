@@ -5,7 +5,7 @@
  *      Author: Bruno
  */
 
-#include "Module.h"
+#include "../modules/Module.h"
 
 Module::Module(ModuleType mt, BusCommunication busCom,
 		CommunicationManager* comManager, unsigned long serialNumber,

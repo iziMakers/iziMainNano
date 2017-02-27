@@ -5,12 +5,12 @@
  *      Author: Bruno
  */
 
-#ifndef SRC_MODULE_H_
-#define SRC_MODULE_H_
+#ifndef SRC_MODULES_MODULE_H_
+#define SRC_MODULES_MODULE_H_
 
 #include <arduino.h>
 #include "aJSON.h"
-#include "CommunicationManager.h"
+#include "../CommunicationManager.h"
 //#include "Aspect.h"
 
 enum ModuleType {
@@ -61,4 +61,4 @@ protected:
 	;
 };
 
-#endif /* SRC_MODULE_H_ */
+#endif /* SRC_MODULES_MODULE_H_ */
