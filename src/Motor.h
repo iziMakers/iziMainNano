@@ -16,8 +16,7 @@ public:
 			unsigned long lastReading = 0, aJsonObject* root = NULL);
 	virtual ~Motor();
 
-	void processSpecificInput(aJsonObject* root);
-	void processOutput();
+	void sendJson();
 
 	int getMotorA_speed();
 	int getMotorA_speed_target();
@@ -28,10 +27,16 @@ public:
 	void setMotorB_speed_target(int value);
 
 private:
+	char* parameterNames[2] = { "a", "b" };
 	int motorA_speed = 0;
 	int motorA_speed_target = 0;
 	int motorB_speed = 0;
 	int motorB_speed_target = 0;
+
+	void processSpecificInput(aJsonObject* root);
+	void setFromJson(int id, int value);
+	aJsonObject* toJson();
+
 };
 
 #endif /* SRC_MOTOR_H_ */

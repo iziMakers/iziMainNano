@@ -12,12 +12,12 @@ Module::Module(ModuleType mt, BusCommunication busCom,
 		unsigned long lastReading, aJsonObject* root) :
 		mt(mt), busCom(busCom), comManager(comManager), serialNumber(serialNumber), lastReading(
 				lastReading) {
-	processInput(root);
+	processJsonInput(root);
 }
 
 Module::~Module() {
 }
-void Module::processInput(aJsonObject* root) {
+void Module::processJsonInput(aJsonObject* root) {
 	Serial.print(StrIndent);
 	if (root != NULL) {
 		processSpecificInput(root);
@@ -29,8 +29,9 @@ void Module::processInput(aJsonObject* root) {
 }
 void Module::processSpecificInput(aJsonObject* root) {
 }
-void Module::processOutput() {
+void Module::sendJson() {
 }
+
 ModuleType Module::getType() {
 	return mt;
 }

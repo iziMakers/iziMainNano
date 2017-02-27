@@ -26,9 +26,9 @@ public:
 			CommunicationManager* comManager = NULL, unsigned long serialNumber = 0,
 			unsigned long lastReading = 0, aJsonObject* root = NULL);
 	virtual ~Module();
-	virtual void processInput(aJsonObject* root);
+	virtual void processJsonInput(aJsonObject* root);
 	virtual void processSpecificInput(aJsonObject* root);
-	virtual void processOutput();
+	virtual void sendJson();
 	ModuleType getType();
 	BusCommunication getBusCom();
 	unsigned long getSerialNumber();
@@ -38,8 +38,6 @@ public:
 	void setLastWriting(unsigned long date);
 
 protected:
-	int getValueInt(aJsonObject* root, const char * id);
-	void sendOutput(aJsonObject* objectJSON);
 	ModuleType mt;
 	BusCommunication busCom;
 	CommunicationManager* comManager;
@@ -51,6 +49,16 @@ protected:
 	String StrIndent = "  ";
 	String StrError = "err";
 	//End TODO
+
+	int getValueInt(aJsonObject* root, const char * id);
+	void sendOutput(aJsonObject* objectJSON);
+	virtual void setFromJson(int id, int value) {
+	}
+	;
+	virtual aJsonObject* toJson() {
+		return NULL;
+	}
+	;
 };
 
 #endif /* SRC_MODULE_H_ */
