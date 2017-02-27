@@ -19,7 +19,7 @@ Motor::~Motor() {
 void Motor::processSpecificInput(aJsonObject* root) {
 	Serial.print("Min");
 	int value;
-	for (int i = 0; i < 2; i++) {
+	for (int i = 1; i < 3; i++) {
 		value = getValueInt(root, parameterNames[i]);
 		setFromJson(i, value);
 	}
@@ -32,10 +32,10 @@ void Motor::setFromJson(int id, int value) {
 			// serialNumber;
 			break;
 		case 1:
-			setMotorA_speed_target(value);
+			motorA_speed = value;
 			break;
 		case 2:
-			setMotorB_speed_target(value);
+			motorB_speed = value;
 			break;
 		default:
 			// error
@@ -45,20 +45,16 @@ void Motor::setFromJson(int id, int value) {
 	}
 }
 
-
 void Motor::sendJson() {
-	if (!1/*sendOutput*/) {
-		if (motorA_speed != motorA_speed_target
-				|| motorB_speed != motorB_speed_target
-				|| (millis() >= lastWriting + 100)) {
+	if (motorA_speed != motorA_speed_target || motorB_speed != motorB_speed_target
+			|| (millis() >= lastWriting + 100)) {
 
-			aJsonObject* objectJSON = toJson();
-			Serial.print(StrIndent);
-			Serial.print("Mout:");
-			sendOutput(objectJSON);
-			aJson.deleteItem(objectJSON);
-			lastWriting = millis();
-		}
+		aJsonObject* objectJSON = toJson();
+		Serial.print(StrIndent);
+		Serial.print("Mout:");
+		sendOutput(objectJSON);
+		aJson.deleteItem(objectJSON);
+		lastWriting = millis();
 	}
 }
 aJsonObject* Motor::toJson() {

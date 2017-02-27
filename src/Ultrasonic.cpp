@@ -16,12 +16,10 @@ Ultrasonic::Ultrasonic(ModuleType mt, BusCommunication busCom,
 Ultrasonic::~Ultrasonic() {
 }
 int Ultrasonic::getDistanceCm() {
-	//process();
 	return distanceCm;
 }
 
 int Ultrasonic::getDistanceInch() {
-	//process();
 	return (int) (distanceCm / 2.54);
 }
 

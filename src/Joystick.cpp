@@ -16,6 +16,57 @@ Joystick::Joystick(ModuleType mt, BusCommunication busCom,
 Joystick::~Joystick() {
 }
 
+void Joystick::processSpecificInput(aJsonObject* root) {
+	Serial.print("Jin");
+	int value;
+	for (int i = 1; i < 3; i++) {
+		value = getValueInt(root, parameterNames[i]);
+		setFromJson(i, value);
+	}
+}
+
+void Joystick::setFromJson(int id, int value) {
+	if (value != NULL) {
+		switch (id) {
+		case 0:
+			// serialNumber;
+			break;
+		case 1:
+			axeX = value;
+			break;
+		case 2:
+			axeY = value;
+			break;
+		case 3:
+			buttonState = value;
+			break;
+		default:
+			// error
+			return;
+		}
+		lastReading = millis();
+	}
+}
+void Joystick::sendJson() {
+	if (millis() > lastWriting + 300) {
+
+		aJsonObject* objectJSON = toJson();
+		Serial.print(StrIndent);
+		Serial.print("Jout:");
+		sendOutput(objectJSON);
+		aJson.deleteItem(objectJSON);
+		lastWriting = millis();
+	}
+}
+aJsonObject * Joystick::toJson() {
+	aJsonObject* objectJSON = aJson.createObject();
+	aJson.addItemToObject(objectJSON, parameterNames[0],
+			aJson.createItem((int) getSerialNumber()));
+	aJson.addItemToObject(objectJSON, parameterNames[1], aJson.createItem(1));
+
+	return objectJSON;
+}
+
 int Joystick::getAxeX() {
 	//process();
 	return axeX;
@@ -27,44 +78,4 @@ int Joystick::getAxeY() {
 bool Joystick::isPressed() {
 	//process();
 	return buttonState;
-}
-void Joystick::processSpecificInput(aJsonObject* root) {
-	Serial.println("Jin");
-	int value;
-	value = getValueInt(root, "JX");
-	if (value != NULL) {
-		axeX = value;
-		lastReading = millis();
-	}
-	value = getValueInt(root, "JY");
-	if (value != NULL) {
-		axeY = value;
-		lastReading = millis();
-	}
-	value = getValueInt(root, "JSW");
-	if (value != NULL) {
-		if (value != 0) {
-			buttonState = true;
-		} else {
-			buttonState = false;
-		}
-		lastReading = millis();
-	}
-}
-
-void Joystick::processOutput() {
-	if (!1/*sendOutput*/) {
-		if (millis() > lastWriting + 300) {
-			aJsonObject* objectJSON = aJson.createObject();
-			aJson.addItemToObject(objectJSON, "sn",
-					aJson.createItem((int) getSerialNumber()));
-			aJson.addItemToObject(objectJSON, "j", aJson.createItem(1));
-
-			Serial.print(StrIndent);
-			Serial.print("Jout:");
-			sendOutput(objectJSON);
-			aJson.deleteItem(objectJSON);
-		}
-		lastReading = millis();
-	}
 }

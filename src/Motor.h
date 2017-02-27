@@ -27,7 +27,7 @@ public:
 	void setMotorB_speed_target(int value);
 
 private:
-	char* parameterNames[2] = { "a", "b" };
+	char* parameterNames[3] = { "sn", "a", "b" };
 	int motorA_speed = 0;
 	int motorA_speed_target = 0;
 	int motorB_speed = 0;

@@ -17,22 +17,22 @@ public:
 	virtual ~Pixel();
 
 	void setup();
-	void processSpecificInput(aJsonObject* root);
-	void processOutput();
+	void sendJson();
 	void setPixelColor(int pixel_num, int pixel_color);
 	void setPixelHSL(int pixel_num, double h, double s, double l);
 	void setFireOn(boolean val);
 
 private:
-	void hslToRgb(float h, float s, float l, byte rgb[]);
-	float hue2rgb(float p, float q, float t);
-
+	char* parameterNames[2] = { "sn", "fire" };
 	const static uint8_t pixelMaxNomber = 100;
 	int pixelColors[pixelMaxNomber];
 	boolean isNewPixelColors[pixelMaxNomber];
 	boolean isOneNewPixelColor = false;
-
 	boolean fireEffectActivated = false;
+
+	aJsonObject* toJson();
+	void hslToRgb(float h, float s, float l, byte rgb[]);
+	float hue2rgb(float p, float q, float t);
 };
 
 #endif /* SRC_PIXEL_H_ */

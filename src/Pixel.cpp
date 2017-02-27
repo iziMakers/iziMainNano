@@ -23,49 +23,54 @@ void Pixel::setup() {
 	}
 	//processOutput()
 }
-/*void Pixel::processSpecificInput(aJsonObject* root) {
 
- }*/
-void Pixel::processOutput() {
+void Pixel::sendJson() {
 	if (isOneNewPixelColor) {
 		//if (millis() >= lastWriting + 1000) {
 
-		aJsonObject* objectJSON = aJson.createObject();
-		aJson.addItemToObject(objectJSON, "sn",
-				aJson.createItem((int) getSerialNumber()));
-		if (fireEffectActivated) {
-			aJson.addItemToObject(objectJSON, "fire", aJson.createItem(1));
-		} else {
-			char charBuf[3];
-			int nb_pixels = 5;
-			for (int iiii = 0; iiii < pixelMaxNomber; iiii++) {
-				if (isNewPixelColors[iiii] && nb_pixels > 0) {
-					itoa(iiii, charBuf, 3);
-					aJson.addItemToObject(objectJSON, charBuf,
-							aJson.createItem(pixelColors[iiii]));
-					isNewPixelColors[iiii] = false;
-					nb_pixels -= 1;
-				}
-			}
-			if (nb_pixels == 5) {
-				aJson.addItemToObject(objectJSON, "fire", aJson.createItem(0));
-			}
-		}
-
+		aJsonObject* objectJSON = toJson();
 		Serial.print(StrIndent);
-		Serial.print("Pout:");
+		Serial.print("Mout:");
 		sendOutput(objectJSON);
+		aJson.deleteItem(objectJSON);
+		lastWriting = millis();
 
+		//verification
 		isOneNewPixelColor = false;
 		for (int iiii = 0; iiii < pixelMaxNomber; iiii++) {
 			if (isNewPixelColors[iiii]) {
 				isOneNewPixelColor = true;
 			}
 		}
-		aJson.deleteItem(objectJSON);
-		lastWriting = millis();
 	}
 
+}
+
+aJsonObject* Pixel::toJson() {
+	aJsonObject* objectJSON = aJson.createObject();
+	aJson.addItemToObject(objectJSON, parameterNames[0],
+			aJson.createItem((int) getSerialNumber()));
+
+	if (fireEffectActivated) {
+		aJson.addItemToObject(objectJSON, parameterNames[1], aJson.createItem(1));
+	} else {
+		char charBuf[3];
+		int nb_pixels = 5;
+		for (int iiii = 0; iiii < pixelMaxNomber; iiii++) {
+			if (isNewPixelColors[iiii] && nb_pixels > 0) {
+				itoa(iiii, charBuf, 3);
+				aJson.addItemToObject(objectJSON, charBuf,
+						aJson.createItem(pixelColors[iiii]));
+				isNewPixelColors[iiii] = false;
+				nb_pixels -= 1;
+			}
+		}
+		if (nb_pixels == 5) {
+			aJson.addItemToObject(objectJSON, parameterNames[1], aJson.createItem(0));
+		}
+	}
+
+	return objectJSON;
 }
 
 void Pixel::setPixelColor(int pixel_num, int pixel_color) {

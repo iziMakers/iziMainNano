@@ -17,8 +17,7 @@ public:
 			unsigned long lastReading = 0, aJsonObject* root = NULL);
 	virtual ~Joystick();
 
-	void processSpecificInput(aJsonObject* root);
-	void processOutput();
+	void sendJson();
 
 	int getAxeX();
 	int getAxeY();
@@ -26,9 +25,14 @@ public:
 
 
 private:
+	char* parameterNames[4] = { "sn", "JX", "JY", "JSW" };
 	int axeX = 0;
 	int axeY = 0;
 	bool buttonState = false;
+
+	void processSpecificInput(aJsonObject* root);
+	void setFromJson(int id, int value);
+	aJsonObject* toJson();
 };
 
 #endif /* SRC_JOYSTICK_H_ */

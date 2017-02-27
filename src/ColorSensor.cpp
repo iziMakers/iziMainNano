@@ -17,24 +17,35 @@ ColorSensor::~ColorSensor() {
 }
 
 void ColorSensor::processSpecificInput(aJsonObject* root) {
-	int value = getValueInt(root, "H");
-	if (value != NULL) {
-		hue = value;
-		lastReading = millis();
+	Serial.print("Cin");
+	int value;
+	for (int i = 1; i < 5; i++) {
+		value = getValueInt(root, parameterNames[i]);
+		setFromJson(i, value);
 	}
-	value = getValueInt(root, "S");
+}
+void ColorSensor::setFromJson(int id, int value) {
 	if (value != NULL) {
-		saturation = value;
-		lastReading = millis();
-	}
-	value = getValueInt(root, "V");
-	if (value != NULL) {
-		iValue = value;
-		lastReading = millis();
-	}
-	value = getValueInt(root, "P");
-	if (value != NULL) {
-		preset = value;
+		switch (id) {
+		case 0:
+			// serialNumber;
+			break;
+		case 1:
+			hue = value;
+			break;
+		case 2:
+			saturation = value;
+			break;
+		case 3:
+			iValue = value;
+			break;
+		case 4:
+			preset = value;
+			break;
+		default:
+			// error
+			return;
+		}
 		lastReading = millis();
 	}
 }

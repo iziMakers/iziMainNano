@@ -189,7 +189,7 @@ void process() {
 			if (existing == NULL) {
 				Module newModule(mtWrong, receiveBus); // TODO add Module type
 				newModule.setLastReading(millis());
-				newModule.processInput(root);
+				newModule.processJsonInput(root);
 				modules[nb_modules] = newModule;
 				nb_modules += 1;
 
@@ -197,7 +197,7 @@ void process() {
 				DEBUG_PRINT("New:");
 				DEBUG_PRINTLN(serialNumber);
 			} else {
-				existing->processInput(root);
+				existing->processJsonInput(root);
 
 				DEBUG_PRINT(StrIndent);
 				DEBUG_PRINT("Mod:");
