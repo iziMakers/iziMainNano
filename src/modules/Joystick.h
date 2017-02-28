@@ -12,9 +12,8 @@
 
 class Joystick: public Module {
 public:
-	Joystick(unsigned long serialNumber = 0, BusCommunication busCom = bcWrong,
-			CommunicationManager* comManager = NULL, unsigned long lastReading = 0,
-			aJsonObject* root = NULL);
+	Joystick(unsigned long serialNumber = 0, CommunicationManager* comManager =
+	NULL, unsigned long lastReading = 0, aJsonObject* root = NULL);
 	virtual ~Joystick();
 
 	void sendJson();

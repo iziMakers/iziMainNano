@@ -71,7 +71,8 @@ void CommunicationManager::MODULES_question() {
 		//freeMem("freeMem");
 	}
 }
-void CommunicationManager::processJSon() {
+aJsonObject* CommunicationManager::processJSon() {
+	aJsonObject* root = NULL;
 	if (getStringComplete()) {
 		root = aJson.parse(dataBuffer);
 		for (int i = 0; i < dataBufferLength; i++) {
@@ -82,6 +83,12 @@ void CommunicationManager::processJSon() {
 		setStringComplete(false);         // notify that the buffer is treated
 
 		Serial.print(millis());
-		Serial.print(" SPI>");
+		if (busCom == busSPI) {
+			Serial.print(" SPI>");
+		} else {
+			Serial.print(" RS485>");
+		}
+
 	}
+	return root;
 }

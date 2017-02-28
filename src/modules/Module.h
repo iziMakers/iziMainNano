@@ -10,30 +10,23 @@
 
 #include <arduino.h>
 #include "aJSON.h"
-
+#include "../Enums.h"
 #include "../bus/CommunicationManager.h"
-//#include "Aspect.h"
 
-enum ModuleType {
-	mtWrong, mtJoystick, mtMotor, mtUltrasonic, mtColorSensor, mtServo, mtPixel
-};
-enum BusCommunication {
-	bcWrong, bcSPI, bcRS485
-};
+//#include "Aspect.h"
 
 class Module {
 public:
-	Module(ModuleType mt = mtWrong, BusCommunication busCom = bcWrong,
-			CommunicationManager* comManager = NULL, unsigned long serialNumber = 0,
-			unsigned long lastReading = 0, aJsonObject* root = NULL);
+	Module(ModuleType mt = mtWrong, CommunicationManager* comManager = NULL,
+			unsigned long serialNumber = 0, unsigned long lastReading = 0,
+			aJsonObject* root = NULL);
 	virtual ~Module();
 	virtual void processJsonInput(aJsonObject* root);
 	virtual void processSpecificInput(aJsonObject* root);
 	virtual void sendJson();
 	ModuleType getType();
-	BusCommunication getBusCom();
-	void setBusCom(BusCommunication bus);
 	unsigned long getSerialNumber();
+	void setcomManager(CommunicationManager* comManager);
 	unsigned long getLastReading();
 	void setLastReading(unsigned long date);
 	unsigned long getLastWriting();
@@ -41,7 +34,6 @@ public:
 
 protected:
 	ModuleType mt; // not used
-	BusCommunication busCom;
 	CommunicationManager* comManager;
 	unsigned long serialNumber;
 	unsigned long lastReading;

@@ -10,6 +10,8 @@
 
 #include <arduino.h>
 #include "aJSON.h"
+#include "../Enums.h"
+
 
 class CommunicationManager {
 public:
@@ -19,7 +21,7 @@ public:
 	virtual void send();
 	virtual void addIncomingChar(char inChar);
 	virtual void MODULES_question();
-	virtual void processJSon();
+	virtual aJsonObject* processJSon();
 
 	bool getStringComplete();bool getReceiving();
 	void setStringComplete(bool complete);
@@ -35,10 +37,9 @@ public:
 	char dataBuffer[INBUFFER_SIZE];
 	int dataBufferLength = 0;
 
-	aJsonObject* root;
-
 protected:
 
+	BusCom busCom = busWrong;
 	unsigned long lastSentQuestion = 0;
 	unsigned long lastRxStart = 0;
 	unsigned long lastRxEnd = 0;

@@ -12,7 +12,6 @@ SpiManager::SpiManager() {
 }
 
 SpiManager::~SpiManager() {
-	// TODO Auto-generated destructor stub
 }
 
 void SpiManager::setup() {

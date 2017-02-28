@@ -11,9 +11,8 @@
 
 class Pixel: public Module {
 public:
-	Pixel(unsigned long serialNumber = 0, BusCommunication busCom = bcWrong,
-			CommunicationManager* comManager = NULL, unsigned long lastReading = 0,
-			aJsonObject* root = NULL);
+	Pixel(unsigned long serialNumber = 0, CommunicationManager* comManager = NULL,
+			unsigned long lastReading = 0, aJsonObject* root = NULL);
 	virtual ~Pixel();
 
 	void setup();

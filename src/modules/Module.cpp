@@ -7,10 +7,9 @@
 
 #include "../modules/Module.h"
 
-Module::Module(ModuleType mt, BusCommunication busCom,
-		CommunicationManager* comManager, unsigned long serialNumber,
-		unsigned long lastReading, aJsonObject* root) :
-		mt(mt), busCom(busCom), comManager(comManager), serialNumber(serialNumber), lastReading(
+Module::Module(ModuleType mt, CommunicationManager* comManager,
+		unsigned long serialNumber, unsigned long lastReading, aJsonObject* root) :
+		mt(mt), comManager(comManager), serialNumber(serialNumber), lastReading(
 				lastReading) {
 	processJsonInput(root);
 }
@@ -36,12 +35,6 @@ void Module::sendJson() {
 ModuleType Module::getType() {
 	return mt;
 }
-BusCommunication Module::getBusCom() {
-	return busCom;
-}
-void Module::setBusCom(BusCommunication bus) {
-	busCom = bus;
-}
 unsigned long Module::getSerialNumber() {
 	return serialNumber;
 }
@@ -50,6 +43,9 @@ unsigned long Module::getLastReading() {
 }
 unsigned long Module::getLastWriting() {
 	return lastWriting;
+}
+void Module::setcomManager(CommunicationManager* comManager) {
+	this->comManager = comManager;
 }
 
 int Module::getValueInt(aJsonObject* root, const char * id) {

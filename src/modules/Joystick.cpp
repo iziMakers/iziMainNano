@@ -7,10 +7,9 @@
 
 #include "Joystick.h"
 
-Joystick::Joystick(unsigned long serialNumber, BusCommunication busCom,
-		CommunicationManager* comManager, unsigned long lastReading,
-		aJsonObject* root) :
-		Module(mtJoystick, busCom, comManager, serialNumber, lastReading, root) {
+Joystick::Joystick(unsigned long serialNumber, CommunicationManager* comManager,
+		unsigned long lastReading, aJsonObject* root) :
+		Module(mtJoystick, comManager, serialNumber, lastReading, root) {
 }
 
 Joystick::~Joystick() {

@@ -7,10 +7,10 @@
 
 #include "ColorSensor.h"
 
-ColorSensor::ColorSensor(unsigned long serialNumber, BusCommunication busCom,
+ColorSensor::ColorSensor(unsigned long serialNumber,
 		CommunicationManager* comManager, unsigned long lastReading,
 		aJsonObject* root) :
-		Module(mtColorSensor, busCom, comManager, serialNumber, lastReading, root) {
+		Module(mtColorSensor, comManager, serialNumber, lastReading, root) {
 }
 
 ColorSensor::~ColorSensor() {
