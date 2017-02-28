@@ -11,9 +11,9 @@
 
 class Servo: public Module {
 public:
-	Servo(ModuleType mt = mtWrong, BusCommunication busCom = bcWrong,
-			CommunicationManager* comManager = NULL, unsigned long serialNumber = 0,
-			unsigned long lastReading = 0, aJsonObject* root = NULL);
+	Servo(unsigned long serialNumber = 0, BusCommunication busCom = bcWrong,
+			CommunicationManager* comManager = NULL, unsigned long lastReading = 0,
+			aJsonObject* root = NULL);
 	virtual ~Servo();
 
 	void sendJson();
@@ -27,8 +27,6 @@ private:
 	uint8_t servoAngles[5] = { 0, 0, 0, 0, 0 };
 	uint8_t servoTargetAngles[5] = { 0, 0, 0, 0, 0 };
 
-	void processSpecificInput(aJsonObject* root);
-	void setFromJson(int id, int value);
 	aJsonObject* toJson();
 };
 

@@ -1,19 +1,32 @@
 #include <aJSON.h>
 #include <arduino.h>
 #include "src/Aspect.h"
+#include "src/bus/RS485Manager.h"
+#include "src/bus/SpiManager.h"
+//#include "src/FreeMemory.h"
 
-#include "src/RS485Manager.h"
-#include "src/SpiManager.h"
 #include "src/ModulesManager.h"
 
 SpiManager SPI;
 RS485Manager RS485(2, 6); ///RX,TX
 void process();
 
-#define PIN_DC      A0
+/*#define PIN_DC      A0
+
+ void measureDC() {
+ int v_max = 5 * inputMesureDC_x;
+ inputMesureDC = map(analogRead(PIN_DC), 0, 1023, 0, v_max);
+ }
+ void printDC() {
+ Serial.print("DC:");
+ Serial.println(inputMesureDC);
+ }
+
+ //int inputMesureDC = 0;
+ //int inputMesureDC_x = 5045;      // multiplicateur pour obtenir des mV
+ */
 
 //#define PIN_LED  13     // no pin_led à cause du SPI
-
 #define MODULE_JOYSTICKS    true
 #define MODULE_MOTORS       true
 #define MODULE_ULTRASONIC   true
@@ -25,26 +38,32 @@ void process();
 
 #if MODULE_JOYSTICKS
 #include "src/modules/Joystick.h"
+Joystick joystick(100);
 #endif
 
 #if MODULE_MOTORS
 #include "src/modules/Motor.h"
+Motor motor(101);
 #endif
 
 #if MODULE_ULTRASONIC
 #include "src/modules/Ultrasonic.h"
+Ultrasonic ultrasonic(102);
 #endif
 
 #if MODULE_COLORSENSOR
 #include "src/modules/ColorSensor.h"
+ColorSensor colorSensor(103);
 #endif
 
 #if MODULE_SERVO
 #include "src/modules/Servo.h"
+Servo servo(104);
 #endif
 
 #if MODULE_PIXELS
 #include "src/modules/Pixel.h"
+Pixel pixel(105);
 #endif
 
 long baudrate_PC = 115200;
@@ -59,13 +78,9 @@ char TrameByteEnd = '}';
 // SPI interrupt routine
 ISR (SPI_STC_vect) {
 	byte inChar = SPDR;  // grab byte from SPI Data Register
-	/*if(!receiving) {
-	 Serial.print("RX:");
-	 Serial.print(inChar, HEX);
-	 }*/
-	//receiving = true;
+	SPI.setReceiving(true);
 	SPI.addIncomingChar(inChar);
-	SPI.SPI_RX_start_ms = millis();
+	SPI.lastRxStart = millis();
 }
 
 // PC ****************
@@ -107,20 +122,6 @@ void setup() {
 	}
 }
 
-/*
- void measureDC() {
- int v_max = 5 * inputMesureDC_x;
- inputMesureDC = map(analogRead(PIN_DC), 0, 1023, 0, v_max);
- }
- void printDC() {
- Serial.print("DC:");
- Serial.println(inputMesureDC);
- }
-
- //int inputMesureDC = 0;
- //int inputMesureDC_x = 5045;      // multiplicateur pour obtenir des mV
- */
-
 void pause(unsigned long length_ms) {     // pause qui ne bloque le process
 	unsigned long start_ms = millis();
 	while (millis() < start_ms + length_ms) {
@@ -132,22 +133,10 @@ void process() {
 	ModuleType moduleType = mtWrong;
 	unsigned long serialNumber = 0;
 	BusCommunication receiveBus = bcWrong;                  // BUS_RS485 , BUS_SPI
+	aJsonObject* root;
 
 	RS485.RS484_read();
 
-	/*
-	 if (receiving) {
-	 if (digitalRead(SPI_SSinterruptPin) == HIGH) {
-	 // receiving should be finished
-	 receiving = false;
-	 stringComplete = true;
-	 receiveBus = BUS_SPI;
-
-	 Serial.print("X_");
-	 }
-	 }
-	 */
-	aJsonObject* root;
 	if (RS485.getStringComplete()) {
 		root = aJson.parse(RS485.dataBuffer);
 		for (int i = 0; i < RS485.dataBufferLength; i++) {
@@ -155,7 +144,7 @@ void process() {
 		}
 		DEBUG_PRINTLN(".");
 		RS485.dataBufferLength = 0;
-		RS485.bStringComplete = false;     // notify that the buffer is treated
+		RS485.setStringComplete(false);     // notify that the buffer is treated
 
 		receiveBus = bcRS485;
 		DEBUG_PRINT(millis());
@@ -168,7 +157,7 @@ void process() {
 		}
 		DEBUG_PRINTLN(".");
 		SPI.dataBufferLength = 0;
-		SPI.bStringComplete = false;         // notify that the buffer is treated
+		SPI.setStringComplete(false);         // notify that the buffer is treated
 
 		receiveBus = bcSPI;
 		DEBUG_PRINT(millis());
@@ -185,19 +174,19 @@ void process() {
 		aJsonObject* sn = aJson.getObjectItem(root, "sn");
 		if (sn != NULL) {
 			serialNumber = sn->valueint;    //valueint      root["sn"];
-			Module* existing = Module_getModule(serialNumber);
-			if (existing == NULL) {
-				Module newModule(mtWrong, receiveBus); // TODO add Module type
-				newModule.setLastReading(millis());
-				newModule.processJsonInput(root);
-				modules[nb_modules] = newModule;
-				nb_modules += 1;
+			Module* knownModule = Module_getModuleKnown(serialNumber);
+			if (knownModule == NULL) {
+				//Module newModule(mtWrong, receiveBus); // TODO create module there
+				Module* unknownModule = Module_getModule(serialNumber);
+				unknownModule->setBusCom(receiveBus);
+				unknownModule->processJsonInput(root);
+				addModuleKnown(*unknownModule);
 
 				DEBUG_PRINT(StrIndent);
 				DEBUG_PRINT("New:");
 				DEBUG_PRINTLN(serialNumber);
 			} else {
-				existing->processJsonInput(root);
+				knownModule->processJsonInput(root);
 
 				DEBUG_PRINT(StrIndent);
 				DEBUG_PRINT("Mod:");
@@ -207,67 +196,18 @@ void process() {
 			Serial.print(StrError);
 			Serial.println(":no \"sn\"");
 		}
-		//aJson.deleteItem(sn);
 	} else {
 		Serial.print(StrError);
 		Serial.println(":parse");
 	}
 	aJson.deleteItem(root);
+
+	RS485.MODULES_question();
+	SPI.MODULES_question();
 }
 
-// TODO how to support it, it was in the process
-/*
- RS485.MODULES_question();
- SPI.MODULES_question();*/
-
-// loop ****************
 void loop() { // run over and over
 	while (true) {
 		process();
 	}
-}
-
-//Code to print out the free memory
-struct __freelist {
-	size_t sz;
-	struct __freelist *nx;
-};
-
-extern char * const __brkval;
-extern struct __freelist *__flp;
-
-uint16_t freeMem(uint16_t *biggest) {
-	char *brkval;
-	char *cp;
-	unsigned freeSpace;
-	struct __freelist *fp1, *fp2;
-
-	brkval = __brkval;
-	if (brkval == 0) {
-		brkval = __malloc_heap_start;
-	}
-	cp = __malloc_heap_end;
-	if (cp == 0) {
-		cp = ((char *) AVR_STACK_POINTER_REG) - __malloc_margin;
-	}
-	if (cp <= brkval)
-		return 0;
-
-	freeSpace = cp - brkval;
-
-	for (*biggest = 0, fp1 = __flp, fp2 = 0; fp1; fp2 = fp1, fp1 = fp1->nx) {
-		if (fp1->sz > *biggest)
-			*biggest = fp1->sz;
-		freeSpace += fp1->sz;
-	}
-
-	return freeSpace;
-}
-
-uint16_t biggest;
-
-void freeMem(char* message) {
-	Serial.print(message);
-	Serial.print(":\t");
-	Serial.println(freeMem(&biggest));
 }

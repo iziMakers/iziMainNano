@@ -21,6 +21,7 @@ void Module::processJsonInput(aJsonObject* root) {
 	Serial.print(StrIndent);
 	if (root != NULL) {
 		processSpecificInput(root);
+		lastReading = millis();
 	} else {
 		Serial.print(StrError);
 		Serial.println(":");
@@ -38,20 +39,17 @@ ModuleType Module::getType() {
 BusCommunication Module::getBusCom() {
 	return busCom;
 }
+void Module::setBusCom(BusCommunication bus) {
+	busCom = bus;
+}
 unsigned long Module::getSerialNumber() {
 	return serialNumber;
 }
 unsigned long Module::getLastReading() {
 	return lastReading;
 }
-void Module::setLastReading(unsigned long date) {
-	lastReading = date;
-}
 unsigned long Module::getLastWriting() {
 	return lastWriting;
-}
-void Module::setLastWriting(unsigned long date) {
-	lastWriting = date;
 }
 
 int Module::getValueInt(aJsonObject* root, const char * id) {

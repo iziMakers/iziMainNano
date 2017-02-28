@@ -10,7 +10,8 @@
 
 #include <arduino.h>
 #include "aJSON.h"
-#include "../CommunicationManager.h"
+
+#include "../bus/CommunicationManager.h"
 //#include "Aspect.h"
 
 enum ModuleType {
@@ -31,6 +32,7 @@ public:
 	virtual void sendJson();
 	ModuleType getType();
 	BusCommunication getBusCom();
+	void setBusCom(BusCommunication bus);
 	unsigned long getSerialNumber();
 	unsigned long getLastReading();
 	void setLastReading(unsigned long date);
@@ -38,7 +40,7 @@ public:
 	void setLastWriting(unsigned long date);
 
 protected:
-	ModuleType mt;
+	ModuleType mt; // not used
 	BusCommunication busCom;
 	CommunicationManager* comManager;
 	unsigned long serialNumber;

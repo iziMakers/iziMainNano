@@ -5,8 +5,8 @@
  *      Author: Bruno
  */
 
-#ifndef SRC_COMMUNICATIONMANAGER_H_
-#define SRC_COMMUNICATIONMANAGER_H_
+#ifndef SRC_BUS_COMMUNICATIONMANAGER_H_
+#define SRC_BUS_COMMUNICATIONMANAGER_H_
 
 #include <arduino.h>
 #include "aJSON.h"
@@ -14,11 +14,15 @@
 class CommunicationManager {
 public:
 	CommunicationManager();
-	virtual ~CommunicationManager();bool getStringComplete();bool getReceiving();
+	virtual ~CommunicationManager();
 	virtual void setup();
 	virtual void send();
 	virtual void addIncomingChar(char inChar);
 	virtual void MODULES_question();
+
+	bool getStringComplete();bool getReceiving();
+	void setStringComplete(bool complete);
+	void setReceiving(bool receving);
 
 #define INBUFFER_SIZE         128
 #define OUTBUFFER_SIZE        128
@@ -29,13 +33,16 @@ public:
 	int outBuffer_len = 0;
 	char dataBuffer[INBUFFER_SIZE];
 	int dataBufferLength = 0;
-	boolean bStringComplete = false;  // whether the string is complete
-	boolean bReceiving = false;
 
 protected:
 
 	unsigned long lastSentQuestion = 0;
-	unsigned long RS485_lastRecevied = 0;
+	unsigned long lastRxStart = 0;
+	unsigned long lastRxEnd = 0;
+	unsigned long lastTxEnd = 0;
+
+	bool bStringComplete = false;  // whether the string is complete
+	bool bReceiving = false;
 
 	//TODO to delete i think
 	String StrModule = "module";
@@ -50,4 +57,4 @@ protected:
 
 };
 
-#endif /* SRC_COMMUNICATIONMANAGER_H_ */
+#endif /* SRC_BUS_COMMUNICATIONMANAGER_H_ */

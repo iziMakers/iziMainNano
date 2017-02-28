@@ -7,10 +7,10 @@
 
 #include "Servo.h"
 
-Servo::Servo(ModuleType mt, BusCommunication busCom,
-		CommunicationManager* comManager, unsigned long serialNumber,
-		unsigned long lastReading, aJsonObject* root) :
-		Module(mt, busCom, comManager, serialNumber, lastReading, root) {
+Servo::Servo(unsigned long serialNumber, BusCommunication busCom,
+		CommunicationManager* comManager, unsigned long lastReading,
+		aJsonObject* root) :
+		Module(mtServo, busCom, comManager, serialNumber, lastReading, root) {
 }
 
 Servo::~Servo() {

@@ -11,9 +11,9 @@
 
 class ColorSensor: public Module {
 public:
-	ColorSensor(ModuleType mt = mtWrong, BusCommunication busCom = bcWrong,
-			CommunicationManager* comManager = NULL, unsigned long serialNumber = 0,
-			unsigned long lastReading = 0, aJsonObject* root = NULL);
+	ColorSensor(unsigned long serialNumber = 0, BusCommunication busCom = bcWrong,
+			CommunicationManager* comManager = NULL, unsigned long lastReading = 0,
+			aJsonObject* root = NULL);
 	virtual ~ColorSensor();
 
 	int getH();

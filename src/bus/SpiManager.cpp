@@ -36,7 +36,7 @@ void SpiManager::endRX() {
 	if (dataBufferLength > 0) {
 		bStringComplete = true;
 	}
-	SPI_RX_end_ms = millis();
+	lastRxEnd = millis();
 }
 
 byte SpiManager::transferAndWait(const byte value) {
@@ -66,7 +66,7 @@ void SpiManager::beginSlaveTransaction() {
 void SpiManager::send() {
 	if (bReceiving) {
 		if (digitalRead(SPI_SSinterruptPin) == HIGH) {
-			if (millis() > SPI_RX_start_ms + 10) {
+			if (millis() > lastRxStart + 10) {
 				Serial.print(StrIndent);
 				Serial.println("SPI end RX");
 				endRX();
@@ -76,8 +76,8 @@ void SpiManager::send() {
 	}
 
 	if (!bReceiving) {
-		if (millis() > SPI_RX_end_ms + 2) {
-			if (millis() > SPI_TX_end_ms + 10) {
+		if (millis() > lastRxEnd + 2) {
+			if (millis() > lastTxEnd + 10) {
 				if (digitalRead(SPI_SSinterruptPin) == HIGH) {
 
 					beginMasterTransaction();
@@ -99,7 +99,7 @@ void SpiManager::send() {
 					beginSlaveTransaction();
 
 					Serial.println("");
-					SPI_TX_end_ms = millis();
+					lastTxEnd = millis();
 				}
 			}
 		}
@@ -107,62 +107,12 @@ void SpiManager::send() {
 }
 
 void SpiManager::addIncomingChar(char inChar) {
-	//receiving = true;
-
-	if (inChar != 0) {
-		if (dataBufferLength == 0) {
-			if (inChar == TrameByteStart) {
-				dataBuffer[dataBufferLength] = inChar;
-				if (dataBufferLength + 1 < INBUFFER_SIZE) {
-					dataBufferLength += 1;
-				}
-			}
-		} else {
-			dataBuffer[dataBufferLength] = inChar;
-			if (dataBufferLength + 1 < INBUFFER_SIZE) {
-				dataBufferLength += 1;
-			}
+	if (inChar != 0
+			&& ((dataBufferLength == 0 && inChar == TrameByteStart)
+					|| dataBufferLength != 0)) {
+		dataBuffer[dataBufferLength] = inChar;
+		if (dataBufferLength + 1 < INBUFFER_SIZE) {
+			dataBufferLength += 1;
 		}
-	}
-}
-
-void SpiManager::MODULES_question() {
-	if (!1/*sendOutput*/) {
-		//measureDC();
-		if (millis() > lastSentQuestion + 3000) {
-			//printDC();
-
-			aJsonObject* objectJSON = aJson.createObject();
-			Serial.print(StrIndent);
-			Serial.print("qm:");
-
-			if (objectJSON != NULL) {
-				aJson.addItemToObject(objectJSON, "module", aJson.createItem("?"));
-				char* msg = aJson.print(objectJSON);
-				//char* msg = "\"{\"module\":\"?\"}";
-				//Serial.println(msg);
-
-				int i = 0;
-				while (*(msg + i) != '\0') {
-					outBuffer[i] = *(msg + i);
-					Serial.print(outBuffer[i]);
-					i += 1;
-				}
-				outBuffer_len = i;
-				free(msg);
-				//sendOutput = true;
-				//sendBus = BUS_SPI;      // BUS_RS485
-
-				lastSentQuestion = millis();
-				//Serial.print("len:");
-				Serial.println(outBuffer_len);
-			} else {
-				Serial.print(StrError);
-				Serial.println(":json");
-			}
-			aJson.deleteItem(objectJSON);
-			//freeMem("freeMem");
-		}
-
 	}
 }

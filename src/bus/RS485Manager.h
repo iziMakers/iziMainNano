@@ -5,11 +5,11 @@
  *      Author: Bruno
  */
 
-#ifndef SRC_RS485MANAGER_H_
-#define SRC_RS485MANAGER_H_
+#ifndef SRC_BUS_RS485MANAGER_H_
+#define SRC_BUS_RS485MANAGER_H_
 
-#include "CommunicationManager.h"
 #include <SoftwareSerial.h>
+#include "CommunicationManager.h"
 
 class RS485Manager: private SoftwareSerial, public CommunicationManager {
 public:
@@ -21,10 +21,9 @@ public:
 	void setup();
 	void send();
 	void addIncomingChar(char inChar);
-	void MODULES_question();
 
-	void setRX();
-	void setTX();
+	void setRxMode();
+	void setTxMode();
 	void RS484_read();
 
 
@@ -33,7 +32,7 @@ private:
 	uint8_t rePin;
 	uint8_t dePin;
 	long baudrate;   // 115200  57600 9600
-	unsigned long RS485_lastRecevied = 0;
+
 
 
 
@@ -41,4 +40,4 @@ private:
 
 };
 
-#endif /* SRC_RS485MANAGER_H_ */
+#endif /* SRC_BUS_RS485MANAGER_H_ */

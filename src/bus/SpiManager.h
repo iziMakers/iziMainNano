@@ -5,8 +5,8 @@
  *      Author: Bruno
  */
 
-#ifndef SRC_SPIMANAGER_H_
-#define SRC_SPIMANAGER_H_
+#ifndef SRC_BUS_SPIMANAGER_H_
+#define SRC_BUS_SPIMANAGER_H_
 
 #include "CommunicationManager.h"
 
@@ -18,7 +18,6 @@ public:
 	void setup();
 	void send();
 	void addIncomingChar(char inChar);
-	void MODULES_question();
 
 	void ssChange();
 	void endRX();
@@ -28,9 +27,9 @@ public:
 
 
 
-	unsigned long SPI_RX_start_ms = 0;
-	unsigned long SPI_RX_end_ms = 0;
-	unsigned long SPI_TX_end_ms = 0;
+	unsigned long lastRxStart = 0;
+	unsigned long lastRxEnd = 0;
+	unsigned long lastTxEnd = 0;
 
 	const byte SPI_SSinterruptPin = 3;
 	const byte SPI_delayMicroBetweenByte = 7;
@@ -43,4 +42,4 @@ private:
 
 };
 
-#endif /* SRC_SPIMANAGER_H_ */
+#endif /* SRC_BUS_SPIMANAGER_H_ */

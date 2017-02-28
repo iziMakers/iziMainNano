@@ -7,10 +7,10 @@
 
 #include "Ultrasonic.h"
 
-Ultrasonic::Ultrasonic(ModuleType mt, BusCommunication busCom,
-		CommunicationManager* comManager, unsigned long serialNumber,
-		unsigned long lastReading, aJsonObject* root) :
-		Module(mt, busCom, comManager, serialNumber, lastReading, root) {
+Ultrasonic::Ultrasonic(unsigned long serialNumber, BusCommunication busCom,
+		CommunicationManager* comManager, unsigned long lastReading,
+		aJsonObject* root) :
+		Module(mtUltrasonic, busCom, comManager, serialNumber, lastReading, root) {
 }
 
 Ultrasonic::~Ultrasonic() {

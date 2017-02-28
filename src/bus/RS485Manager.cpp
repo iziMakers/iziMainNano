@@ -6,6 +6,7 @@
  */
 
 #include "RS485Manager.h"
+
 #include <arduino.h>
 
 #include <SoftwareSerial.h>
@@ -29,15 +30,15 @@ void RS485Manager::setup() {
 
 	pinMode(rePin, OUTPUT);
 	pinMode(dePin, OUTPUT);
-	setRX();
+	setRxMode();
 }
 
-void RS485Manager::setRX() {
+void RS485Manager::setRxMode() {
 	digitalWrite(rePin, LOW);
 	digitalWrite(dePin, LOW);
 }
 
-void RS485Manager::setTX() {
+void RS485Manager::setTxMode() {
 	digitalWrite(rePin, HIGH);
 	digitalWrite(dePin, HIGH);
 }
@@ -114,7 +115,7 @@ void RS485Manager::RS484_read() {
 				delayMicroseconds(200);
 			}
 		}
-		RS485_lastRecevied = millis();
+		lastRxEnd = millis();
 
 		if (bReceiving) {
 			bReceiving = false;
@@ -148,7 +149,7 @@ void RS485Manager::send() {
 				 }
 				 Serial.write('\n');*/
 
-				setTX();
+				setTxMode();
 
 				Serial.print("RS485<");
 				//Serial.write('<');
@@ -163,7 +164,7 @@ void RS485Manager::send() {
 
 				delay(1);
 
-				setRX();
+				setRxMode();
 
 				//outputString = "";
 				//sendOutput = false;
@@ -175,49 +176,9 @@ void RS485Manager::send() {
 		} else {
 			Serial.println("Cannot send");
 
-			if (millis() - RS485_lastRecevied > 100) {
+			if (millis() - lastRxEnd > 100) {
 				bReceiving = false;
 			}
-		}
-	}
-}
-
-void RS485Manager::MODULES_question() {
-	if (!1/*sendOutput*/) {
-		//measureDC();
-		if (millis() > lastSentQuestion + 3100) {
-			//printDC();
-
-			aJsonObject* objectJSON = aJson.createObject();
-			Serial.print(StrIndent);
-			Serial.print("qm:");
-
-			if (objectJSON != NULL) {
-				aJson.addItemToObject(objectJSON, "module", aJson.createItem("?"));
-				char* msg = aJson.print(objectJSON);
-				//char* msg = "\"{\"module\":\"?\"}";
-				//Serial.println(msg);
-
-				int i = 0;
-				while (*(msg + i) != '\0') {
-					outBuffer[i] = *(msg + i);
-					Serial.print(outBuffer[i]);
-					i += 1;
-				}
-				outBuffer_len = i;
-				free(msg);
-				//sendOutput = true;
-				//sendBus = BUS_RS485;      // BUS_RS485
-
-				lastSentQuestion = millis();
-				//Serial.print("len:");
-				Serial.println(outBuffer_len);
-			} else {
-				Serial.print(StrError);
-				Serial.println(":json");
-			}
-			aJson.deleteItem(objectJSON);
-			//freeMem("freeMem");
 		}
 	}
 }

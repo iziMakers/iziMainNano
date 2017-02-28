@@ -7,10 +7,10 @@
 
 #include "Pixel.h"
 
-Pixel::Pixel(ModuleType mt, BusCommunication busCom,
-		CommunicationManager* comManager, unsigned long serialNumber,
-		unsigned long lastReading, aJsonObject* root) :
-		Module(mt, busCom, comManager, serialNumber, lastReading, root) {
+Pixel::Pixel(unsigned long serialNumber, BusCommunication busCom,
+		CommunicationManager* comManager, unsigned long lastReading,
+		aJsonObject* root) :
+		Module(mtPixel, busCom, comManager, serialNumber, lastReading, root) {
 }
 
 Pixel::~Pixel() {
