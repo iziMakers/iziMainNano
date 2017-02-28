@@ -19,26 +19,21 @@ public:
 	void send();
 	void addIncomingChar(char inChar);
 
-	void ssChange();
+	const byte SPI_SSinterruptPin = 3;
+	const byte SPI_delayMicroBetweenByte = 7;
+
+	//normally in private
 	void endRX();
+
+private:
+
 	byte transferAndWait(const byte value);
 	void beginMasterTransaction();
 	void beginSlaveTransaction();
 
-
-
 	unsigned long lastRxStart = 0;
 	unsigned long lastRxEnd = 0;
 	unsigned long lastTxEnd = 0;
-
-	const byte SPI_SSinterruptPin = 3;
-	const byte SPI_delayMicroBetweenByte = 7;
-
-
-private:
-
-
-
 
 };
 

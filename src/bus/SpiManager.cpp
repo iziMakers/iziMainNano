@@ -17,18 +17,6 @@ SpiManager::~SpiManager() {
 
 void SpiManager::setup() {
 	beginSlaveTransaction();
-	//attachInterrupt(digitalPinToInterrupt(SPI_SSinterruptPin), ssChange, CHANGE); // interrupt for SS rising edge
-}
-
-void SpiManager::ssChange() {
-	delayMicroseconds(1);
-	if (digitalRead(SPI_SSinterruptPin) == HIGH) { // RISING
-		if (bReceiving) {
-			endRX();
-		}
-	} else { // FALLING
-		bReceiving = true;
-	}
 }
 
 void SpiManager::endRX() {
@@ -115,4 +103,5 @@ void SpiManager::addIncomingChar(char inChar) {
 			dataBufferLength += 1;
 		}
 	}
+	lastRxStart = millis();
 }

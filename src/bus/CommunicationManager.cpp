@@ -71,3 +71,17 @@ void CommunicationManager::MODULES_question() {
 		//freeMem("freeMem");
 	}
 }
+void CommunicationManager::processJSon() {
+	if (getStringComplete()) {
+		root = aJson.parse(dataBuffer);
+		for (int i = 0; i < dataBufferLength; i++) {
+			Serial.print(dataBuffer[i]);
+		}
+		Serial.println(".");
+		dataBufferLength = 0;
+		setStringComplete(false);         // notify that the buffer is treated
+
+		Serial.print(millis());
+		Serial.print(" SPI>");
+	}
+}

@@ -1,6 +1,7 @@
 #include <aJSON.h>
 #include <arduino.h>
 #include "src/Aspect.h"
+#include "src/bus/CommunicationManager.h"
 #include "src/bus/RS485Manager.h"
 #include "src/bus/SpiManager.h"
 //#include "src/FreeMemory.h"
@@ -68,22 +69,33 @@ Pixel pixel(105);
 
 long baudrate_PC = 115200;
 
-char StrModule[] = "module";
+//char StrModule[] = "module";
 char StrIndent[] = "  ";
 char StrError[] = "err";
 
-char TrameByteStart = '{';
-char TrameByteEnd = '}';
+//char TrameByteStart = '{';
+//char TrameByteEnd = '}';
 
-// SPI interrupt routine
+// SPI interrupt routine **************
 ISR (SPI_STC_vect) {
 	byte inChar = SPDR;  // grab byte from SPI Data Register
 	SPI.setReceiving(true);
 	SPI.addIncomingChar(inChar);
-	SPI.lastRxStart = millis();
+
 }
 
-// PC ****************
+void ssChange() {
+	delayMicroseconds(1);
+	if (digitalRead(SPI.SPI_SSinterruptPin) == HIGH) { // RISING
+		if (SPI.getReceiving()) {
+			SPI.endRX();
+		}
+	} else { // FALLING
+		SPI.setReceiving(true);
+	}
+}
+
+// PC *********************************
 
 void PC_setup() {
 	// Open serial communications and wait for port to open:
@@ -106,13 +118,15 @@ void PC_setup() {
 	//Serial.println("{\"mm\":\"Starting\"}");
 }
 
-// setup ****************
+// setup ******************************
 
 void setup() {
 	PC_setup();
 
 	RS485.setup();
 	SPI.setup();
+	attachInterrupt(digitalPinToInterrupt(SPI.SPI_SSinterruptPin), ssChange,
+	CHANGE); // interrupt for SS rising edge
 
 	//pinMode(PIN_LED, OUTPUT);
 	//digitalWrite(PIN_LED, LOW);
@@ -136,6 +150,8 @@ void process() {
 	aJsonObject* root;
 
 	RS485.RS484_read();
+
+	//todo delete after
 
 	if (RS485.getStringComplete()) {
 		root = aJson.parse(RS485.dataBuffer);
@@ -201,6 +217,8 @@ void process() {
 		Serial.println(":parse");
 	}
 	aJson.deleteItem(root);
+//todo delete before
+
 
 	RS485.MODULES_question();
 	SPI.MODULES_question();

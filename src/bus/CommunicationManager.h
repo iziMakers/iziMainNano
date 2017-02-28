@@ -19,6 +19,7 @@ public:
 	virtual void send();
 	virtual void addIncomingChar(char inChar);
 	virtual void MODULES_question();
+	virtual void processJSon();
 
 	bool getStringComplete();bool getReceiving();
 	void setStringComplete(bool complete);
@@ -34,6 +35,8 @@ public:
 	char dataBuffer[INBUFFER_SIZE];
 	int dataBufferLength = 0;
 
+	aJsonObject* root;
+
 protected:
 
 	unsigned long lastSentQuestion = 0;
@@ -48,11 +51,8 @@ protected:
 	String StrModule = "module";
 	String StrIndent = "  ";
 	String StrError = "err";
-
 	char TrameByteStart = '{';
 	char TrameByteEnd = '}';
-#define BUS_RS485   1
-#define BUS_SPI     2
 	//End TODO
 
 };
