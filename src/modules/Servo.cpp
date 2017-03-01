@@ -7,9 +7,9 @@
 
 #include "Servo.h"
 
-Servo::Servo(unsigned long serialNumber, CommunicationManager* comManager,
-		unsigned long lastReading, aJsonObject* root) :
-		Module(mtServo, comManager, serialNumber, lastReading, root) {
+Servo::Servo(unsigned long serialNumber, unsigned long lastReading,
+		aJsonObject* root) :
+		Module(mtServo, serialNumber, lastReading, root) {
 }
 
 Servo::~Servo() {

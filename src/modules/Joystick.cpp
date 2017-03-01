@@ -7,9 +7,9 @@
 
 #include "Joystick.h"
 
-Joystick::Joystick(unsigned long serialNumber, CommunicationManager* comManager,
-		unsigned long lastReading, aJsonObject* root) :
-		Module(mtJoystick, comManager, serialNumber, lastReading, root) {
+Joystick::Joystick(unsigned long serialNumber, unsigned long lastReading,
+		aJsonObject* root) :
+		Module(mtJoystick, serialNumber, lastReading, root) {
 }
 
 Joystick::~Joystick() {
@@ -46,16 +46,17 @@ void Joystick::setFromJson(int id, int value) {
 		lastReading = millis();
 	}
 }
-void Joystick::sendJson() {
+aJsonObject* Joystick::sendJson() {
+	aJsonObject* objectJSON = NULL;
 	if (millis() > lastWriting + 300) {
 
-		aJsonObject* objectJSON = toJson();
+		objectJSON = toJson();
 		Serial.print(StrIndent);
 		Serial.print("Jout:");
-		sendOutput(objectJSON);
 		aJson.deleteItem(objectJSON);
 		lastWriting = millis();
 	}
+	return objectJSON;
 }
 aJsonObject * Joystick::toJson() {
 	aJsonObject* objectJSON = aJson.createObject();

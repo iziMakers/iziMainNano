@@ -7,9 +7,9 @@
 
 #include "Motor.h"
 
-Motor::Motor(unsigned long serialNumber, CommunicationManager* comManager,
-		unsigned long lastReading, aJsonObject* root) :
-		Module(mtMotor, comManager, serialNumber, lastReading, root) {
+Motor::Motor(unsigned long serialNumber, unsigned long lastReading,
+		aJsonObject* root) :
+		Module(mtMotor, serialNumber, lastReading, root) {
 }
 
 Motor::~Motor() {

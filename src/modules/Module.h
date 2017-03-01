@@ -11,45 +11,45 @@
 #include <arduino.h>
 #include "aJSON.h"
 #include "../Enums.h"
-#include "../bus/CommunicationManager.h"
-
-//#include "Aspect.h"
 
 class Module {
 public:
-	Module(ModuleType mt = mtWrong, CommunicationManager* comManager = NULL,
-			unsigned long serialNumber = 0, unsigned long lastReading = 0,
+	Module(ModuleType mt = mtWrong, unsigned long serialNumber = 0,
+			unsigned long lastReading = 0,
 			aJsonObject* root = NULL);
 	virtual ~Module();
-	virtual void processJsonInput(aJsonObject* root);
-	virtual void processSpecificInput(aJsonObject* root);
-	virtual void sendJson();
+
+	void processJsonInput(aJsonObject* root);
+	void processSpecificInput(aJsonObject* root);
+	aJsonObject* sendJson();
+
 	ModuleType getType();
 	unsigned long getSerialNumber();
-	void setcomManager(CommunicationManager* comManager);
 	unsigned long getLastReading();
 	void setLastReading(unsigned long date);
 	unsigned long getLastWriting();
 	void setLastWriting(unsigned long date);
 
+	//TODO to delete i think
+	String StrModule = "module";
+	String StrIndent = "  ";
+	String StrError = "err";
+	char TrameByteStart = '{';
+	char TrameByteEnd = '}';
+	//End TODO
+
 protected:
 	ModuleType mt; // not used
-	CommunicationManager* comManager;
 	unsigned long serialNumber;
 	unsigned long lastReading;
 	unsigned long lastWriting = 0;
-	//TODO to delete i think
-	//String StrModule = "module";
-	String StrIndent = "  ";
-	String StrError = "err";
-	//End TODO
 
 	int getValueInt(aJsonObject* root, const char * id);
 	void sendOutput(aJsonObject* objectJSON);
-	virtual void setFromJson(int id, int value) {
+	void setFromJson(int id, int value) {
 	}
 	;
-	virtual aJsonObject* toJson() {
+	aJsonObject* toJson() {
 		return NULL;
 	}
 	;

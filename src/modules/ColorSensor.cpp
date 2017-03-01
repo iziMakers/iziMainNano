@@ -7,10 +7,9 @@
 
 #include "ColorSensor.h"
 
-ColorSensor::ColorSensor(unsigned long serialNumber,
-		CommunicationManager* comManager, unsigned long lastReading,
+ColorSensor::ColorSensor(unsigned long serialNumber, unsigned long lastReading,
 		aJsonObject* root) :
-		Module(mtColorSensor, comManager, serialNumber, lastReading, root) {
+		Module(mtColorSensor, serialNumber, lastReading, root) {
 }
 
 ColorSensor::~ColorSensor() {

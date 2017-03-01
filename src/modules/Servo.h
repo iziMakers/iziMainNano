@@ -11,8 +11,8 @@
 
 class Servo: public Module {
 public:
-	Servo(unsigned long serialNumber = 0, CommunicationManager* comManager = NULL,
-			unsigned long lastReading = 0, aJsonObject* root = NULL);
+	Servo(unsigned long serialNumber = 0, unsigned long lastReading = 0,
+			aJsonObject* root = NULL);
 	virtual ~Servo();
 
 	void sendJson();

@@ -11,8 +11,8 @@
 
 class Motor: public Module {
 public:
-	Motor(unsigned long serialNumber = 0, CommunicationManager* comManager = NULL,
-			unsigned long lastReading = 0, aJsonObject* root = NULL);
+	Motor(unsigned long serialNumber = 0, unsigned long lastReading = 0,
+			aJsonObject* root = NULL);
 	virtual ~Motor();
 
 	void sendJson();

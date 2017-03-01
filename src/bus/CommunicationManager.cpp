@@ -31,9 +31,17 @@ void CommunicationManager::setReceiving(bool receiving) {
 }
 void CommunicationManager::setup() {
 }
-void CommunicationManager::send() {
+void CommunicationManager::send(aJsonObject* objectJSON) {
 }
 void CommunicationManager::addIncomingChar(char inChar) {
+	if (inChar != 0
+			&& ((dataBufferLength == 0 && inChar == TrameByteStart)
+					|| dataBufferLength != 0)) {
+		dataBuffer[dataBufferLength] = inChar;
+		if (dataBufferLength + 1 < INBUFFER_SIZE) {
+			dataBufferLength += 1;
+		}
+	}
 }
 void CommunicationManager::MODULES_question() {
 	//measureDC();
@@ -46,23 +54,8 @@ void CommunicationManager::MODULES_question() {
 
 		if (objectJSON != NULL) {
 			aJson.addItemToObject(objectJSON, "module", aJson.createItem("?"));
-			char* msg = aJson.print(objectJSON);
-			//char* msg = "\"{\"module\":\"?\"}";
-			//Serial.println(msg);
-
-			int i = 0;
-			while (*(msg + i) != '\0') {
-				outBuffer[i] = *(msg + i);
-				Serial.print(outBuffer[i]);
-				i += 1;
-			}
-			outBuffer_len = i;
-			send();
+			send(objectJSON);
 			lastSentQuestion = millis();
-			free(msg);
-
-			//Serial.print("len:");
-			Serial.println(outBuffer_len);
 		} else {
 			Serial.print(StrError);
 			Serial.println(":json");
@@ -88,7 +81,6 @@ aJsonObject* CommunicationManager::processJSon() {
 		} else {
 			Serial.print(" RS485>");
 		}
-
 	}
 	return root;
 }

@@ -7,9 +7,9 @@
 
 #include "Pixel.h"
 
-Pixel::Pixel(unsigned long serialNumber, CommunicationManager* comManager,
-		unsigned long lastReading, aJsonObject* root) :
-		Module(mtPixel, comManager, serialNumber, lastReading, root) {
+Pixel::Pixel(unsigned long serialNumber, unsigned long lastReading,
+		aJsonObject* root) :
+		Module(mtPixel, serialNumber, lastReading, root) {
 }
 
 Pixel::~Pixel() {

@@ -8,7 +8,7 @@
 #include "SpiManager.h"
 
 SpiManager::SpiManager() {
-	// TODO Auto-generated constructor stub
+	busCom = busSPI;
 }
 
 SpiManager::~SpiManager() {
@@ -50,57 +50,40 @@ void SpiManager::beginSlaveTransaction() {
 	SPCR |= _BV(SPIE);
 }
 
-void SpiManager::send() {
-	if (bReceiving) {
-		if (digitalRead(SPI_SSinterruptPin) == HIGH) {
-			if (millis() > lastRxStart + 10) {
-				Serial.print(StrIndent);
-				Serial.println("SPI end RX");
-				endRX();
-				//receiving = false;
-			}
-		}
+void SpiManager::send(aJsonObject* objectJSON) {
+	if (bReceiving && digitalRead(SPI_SSinterruptPin) == HIGH) {
+		endRX();
 	}
 
-	if (!bReceiving) {
-		if (millis() > lastRxEnd + 2) {
-			if (millis() > lastTxEnd + 10) {
-				if (digitalRead(SPI_SSinterruptPin) == HIGH) {
+	if (!bReceiving && (millis() > lastRxEnd + 2) && (millis() > lastTxEnd + 10)
+			&& digitalRead(SPI_SSinterruptPin) == HIGH) {
 
-					beginMasterTransaction();
-					// enable Slave Select
-					digitalWrite(SS, LOW);
+		if (objectJSON != NULL) {
 
-					Serial.print("SPI<");
+			beginMasterTransaction();
+			// enable Slave Select
+			digitalWrite(SS, LOW);
 
-					for (int i = 0; i < outBuffer_len; i++) {
-						Serial.print(outBuffer[i]);
-						//if(i + 1 == outBuffer_len) {
-						//Serial.print('\n');
-						//}
-						transferAndWait(outBuffer[i]);
-					}
+			Serial.print("SPI<");
 
-					// disable Slave Select
-					digitalWrite(SS, HIGH);
-					beginSlaveTransaction();
-
-					Serial.println("");
-					lastTxEnd = millis();
-				}
+			char* msg = aJson.print(objectJSON);
+			int i = 0;
+			while (*(msg + i) != '\0') {
+				transferAndWait(*(msg + i));
+				i += 1;
 			}
+			free(msg);
+			//freeMem("freeMem");
+			// disable Slave Select
+			digitalWrite(SS, HIGH);
+			beginSlaveTransaction();
+
+			lastTxEnd = millis();
+			Serial.println(":ok");
+		} else {
+			Serial.print(StrError);
+			Serial.println(":json");
 		}
 	}
 }
 
-void SpiManager::addIncomingChar(char inChar) {
-	if (inChar != 0
-			&& ((dataBufferLength == 0 && inChar == TrameByteStart)
-					|| dataBufferLength != 0)) {
-		dataBuffer[dataBufferLength] = inChar;
-		if (dataBufferLength + 1 < INBUFFER_SIZE) {
-			dataBufferLength += 1;
-		}
-	}
-	lastRxStart = millis();
-}

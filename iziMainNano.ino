@@ -5,6 +5,7 @@
 #include "src/bus/SpiManager.h"
 //#include "src/FreeMemory.h"
 #include "src/Linker.h"
+#include "src/Enums.h"
 
 SpiManager SPI;
 RS485Manager RS485(2, 6); ///RX,TX
@@ -24,22 +25,45 @@ RS485Manager RS485(2, 6); ///RX,TX
  //int inputMesureDC_x = 5045;      // multiplicateur pour obtenir des mV
  */
 
-//#define PIN_LED  13     // no pin_led à cause du SPI
+//#define PIN_LED  13     // no pin_led ï¿½ cause du SPI
 #define MODULE_JOYSTICKS    true
 #define MODULE_MOTORS       true
 #define MODULE_ULTRASONIC   true
-#define MODULE_COLORSENSOR  true
-#define MODULE_SERVO        true
-#define MODULE_PIXELS       true
+#define MODULE_COLORSENSOR  false
+#define MODULE_SERVO        false
+#define MODULE_PIXELS       false
+
+#if MODULE_JOYSTICKS
+#include "src/modules/Joystick.h"
+Joystick joystick(100);
+#endif
+
+#if MODULE_MOTORS
+#include "src/modules/Motor.h"
+Motor motor(101);
+#endif
+
+#if MODULE_ULTRASONIC
+#include "src/modules/Ultrasonic.h"
+Ultrasonic ultrasonic(102);
+#endif
+
+#if MODULE_COLORSENSOR
+#include "src/modules/ColorSensor.h"
+ColorSensor colorSensor(103);
+#endif
+
+#if MODULE_SERVO
+#include "src/modules/Servo.h"
+Servo servo(104);
+#endif
+
+#if MODULE_PIXELS
+#include "src/modules/Pixel.h"
+Pixel pixel(105);
+#endif
 
 long baudrate_PC = 115200;
-
-//char StrModule[] = "module";
-//char StrIndent[] = "  ";
-//char StrError[] = "err";
-
-//char TrameByteStart = '{';
-//char TrameByteEnd = '}';
 
 // SPI interrupt routine **************
 ISR (SPI_STC_vect) {
@@ -96,41 +120,12 @@ void setup() {
 	//pinMode(PIN_LED, OUTPUT);
 	//digitalWrite(PIN_LED, LOW);
 
-#if MODULE_JOYSTICKS
-#include "src/modules/Joystick.h"
-	Joystick joystick(100);
-	addModule(&joystick);
-#endif
-
-#if MODULE_MOTORS
-#include "src/modules/Motor.h"
-	Motor motor(101);
 	addModule(&motor);
-#endif
-
-#if MODULE_ULTRASONIC
-#include "src/modules/Ultrasonic.h"
-	Ultrasonic ultrasonic(102);
+	addModule(&joystick);
 	addModule(&ultrasonic);
-#endif
-
-#if MODULE_COLORSENSOR
-#include "src/modules/ColorSensor.h"
-	ColorSensor colorSensor(103);
-	addModule(&colorSensor);
-#endif
-
-#if MODULE_SERVO
-#include "src/modules/Servo.h"
-	Servo servo(104);
-	addModule(&servo);
-#endif
-
-#if MODULE_PIXELS
-#include "src/modules/Pixel.h"
-	Pixel pixel(105);
-	addModule(&pixel);
-#endif
+	//addModule(&pixel);
+	//addModule(&colorSensor);
+	//addModule(&servo);
 
 	while (nbKnownModules == 0) {
 		process();
@@ -155,6 +150,10 @@ void process() {
 	root = SPI.processJSon();
 	parseJSon(&SPI, root);
 	SPI.MODULES_question();
+
+	for (int i = 0; i < nbKnownModules; i++) {
+		busForKnownModules[0]->send(modulesKnown[0]->sendJson());
+	}
 }
 
 void loop() { // run over and over

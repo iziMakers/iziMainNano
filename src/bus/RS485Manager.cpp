@@ -16,11 +16,11 @@ RS485Manager::RS485Manager(uint8_t receivePin, uint8_t transmitPin,
 		bool inverse_logic) :
 		SoftwareSerial(receivePin, transmitPin, inverse_logic), rePin(rePin), dePin(
 				dePin), baudrate(baudrate) {
+	busCom = busRS485;
 
 }
 
 RS485Manager::~RS485Manager() {
-	// TODO Auto-generated destructor stub
 }
 
 void RS485Manager::setup() {
@@ -41,28 +41,6 @@ void RS485Manager::setRxMode() {
 void RS485Manager::setTxMode() {
 	digitalWrite(rePin, HIGH);
 	digitalWrite(dePin, HIGH);
-}
-
-void RS485Manager::addIncomingChar(char inChar) {
-	//receiving = true;
-
-	if (inChar != 0) {
-		if (dataBufferLength == 0) {
-			if (inChar == TrameByteStart) {
-				dataBuffer[dataBufferLength] = inChar;
-				if (dataBufferLength + 1 < INBUFFER_SIZE) {
-					dataBufferLength += 1;
-				}
-			}
-		} else {
-			dataBuffer[dataBufferLength] = inChar;
-			if (dataBufferLength + 1 < INBUFFER_SIZE) {
-				dataBufferLength += 1;
-				//inBuffer[inBuffer_i] = 0;
-				//receiving = true;
-			}
-		}
-	}
 }
 
 void RS485Manager::RS484_read() {
@@ -120,10 +98,10 @@ void RS485Manager::RS484_read() {
 		if (bReceiving) {
 			bReceiving = false;
 			Serial.print("RX not finished properly:");
-			Serial.print(inBuffer_i);
+			Serial.print(dataBufferLength);
 			Serial.print(":");
-			for (int i = 0; i < inBuffer_i; i++) {
-				Serial.write(inBuffer[i]);
+			for (int i = 0; i < dataBufferLength; i++) {
+				Serial.write(dataBuffer[i]);
 			}
 			Serial.write('\n');
 
@@ -134,51 +112,28 @@ void RS485Manager::RS484_read() {
 	}
 }
 
-void RS485Manager::send() {
-	if (1/*sendOutput*/) {
-		if (!bReceiving) {
-			if (!available()) {
+void RS485Manager::send(aJsonObject* objectJSON) {
+	if (!bReceiving && !available() && objectJSON != NULL) {
+		setTxMode();
+		char* msg = aJson.print(objectJSON);
+		int i = 0;
+		while (*(msg + i) != '\0') {
+			write(*(msg + i));
+			i += 1;
+		}
+		write('\n');
+		delay(1);
 
-				//digitalWrite(PIN_LED, HIGH);
+		setRxMode();
+		lastTxEnd = millis();
+		free(msg);
+		//freeMem("freeMem");
 
-				//Serial.println("< " + outputString);
-				//Serial.println("< " + String(outBuffer));
+	} else {
+		Serial.println("Cannot send");
 
-				/*for(int i = 0 ; i < outBuffer_len ; i++) {
-				 Serial.write(outBuffer[i]);
-				 }
-				 Serial.write('\n');*/
-
-				setTxMode();
-
-				Serial.print("RS485<");
-				//Serial.write('<');
-				//Serial.write(' ');
-				//RS485_Serial.println(String(outBuffer));
-				for (int i = 0; i < outBuffer_len; i++) {
-					write(outBuffer[i]);
-					Serial.write(outBuffer[i]);
-				}
-				write('\n');
-				Serial.write('\n');
-
-				delay(1);
-
-				setRxMode();
-
-				//outputString = "";
-				//sendOutput = false;
-
-				//digitalWrite(PIN_LED, LOW);
-			} else {
-				Serial.println("Cannot send");
-			}
-		} else {
-			Serial.println("Cannot send");
-
-			if (millis() - lastRxEnd > 100) {
-				bReceiving = false;
-			}
+		if (millis() - lastRxEnd > 100) {
+			bReceiving = false;
 		}
 	}
 }

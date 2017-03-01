@@ -16,8 +16,7 @@ public:
 	virtual ~SpiManager();
 
 	void setup();
-	void send();
-	void addIncomingChar(char inChar);
+	void send(aJsonObject* objectJSON);
 
 	const byte SPI_SSinterruptPin = 3;
 	const byte SPI_delayMicroBetweenByte = 7;
@@ -30,10 +29,6 @@ private:
 	byte transferAndWait(const byte value);
 	void beginMasterTransaction();
 	void beginSlaveTransaction();
-
-	unsigned long lastRxStart = 0;
-	unsigned long lastRxEnd = 0;
-	unsigned long lastTxEnd = 0;
 
 };
 

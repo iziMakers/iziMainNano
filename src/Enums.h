@@ -8,7 +8,6 @@
 #ifndef SRC_ENUMS_H_
 #define SRC_ENUMS_H_
 
-
 enum BusCom {
 	busWrong, busSPI, busRS485
 };

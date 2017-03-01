@@ -12,16 +12,15 @@
 #include "aJSON.h"
 #include "../Enums.h"
 
-
 class CommunicationManager {
 public:
 	CommunicationManager();
 	virtual ~CommunicationManager();
-	virtual void setup();
-	virtual void send();
-	virtual void addIncomingChar(char inChar);
-	virtual void MODULES_question();
-	virtual aJsonObject* processJSon();
+	void setup();
+	void send(aJsonObject* objectJSON);
+	void addIncomingChar(char inChar);
+	void MODULES_question();
+	aJsonObject* processJSon();
 
 	bool getStringComplete();bool getReceiving();
 	void setStringComplete(bool complete);
@@ -30,8 +29,6 @@ public:
 #define INBUFFER_SIZE         128
 #define OUTBUFFER_SIZE        128
 
-	char inBuffer[INBUFFER_SIZE];
-	int inBuffer_i = 0;
 	char outBuffer[OUTBUFFER_SIZE];
 	int outBuffer_len = 0;
 	char dataBuffer[INBUFFER_SIZE];
@@ -41,7 +38,6 @@ protected:
 
 	BusCom busCom = busWrong;
 	unsigned long lastSentQuestion = 0;
-	unsigned long lastRxStart = 0;
 	unsigned long lastRxEnd = 0;
 	unsigned long lastTxEnd = 0;
 

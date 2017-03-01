@@ -12,8 +12,8 @@
 
 class Ultrasonic: public Module {
 public:
-	Ultrasonic(unsigned long serialNumber = 0, CommunicationManager* comManager =
-	NULL, unsigned long lastReading = 0, aJsonObject* root = NULL);
+	Ultrasonic(unsigned long serialNumber = 0, unsigned long lastReading = 0,
+			aJsonObject* root = NULL);
 	virtual ~Ultrasonic();
 
 	int getDistanceCm();
