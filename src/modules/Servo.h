@@ -15,7 +15,7 @@ public:
 			aJsonObject* root = NULL);
 	virtual ~Servo();
 
-	void sendJson();
+	aJsonObject* sendJson();
 
 	void setServoAngle(uint8_t id, uint8_t angle);
 	uint8_t getServoTargetAngle(uint8_t id); // TODO usefull?

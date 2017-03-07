@@ -10,21 +10,25 @@
 
 #include <arduino.h>
 #include "aJSON.h"
-#include "../Enums.h"
+
+//  ENUMS *****************************
+const uint8_t busWrong = 0;
+const uint8_t busSPI = 1;
+const uint8_t busRS485 = 2;
 
 class CommunicationManager {
 public:
 	CommunicationManager();
 	virtual ~CommunicationManager();
 	void setup();
-	void send(aJsonObject* objectJSON);
-	void addIncomingChar(char inChar);
+	virtual void send(aJsonObject*);
+	void addIncomingChar(char);
 	void MODULES_question();
 	aJsonObject* processJSon();
 
 	bool getStringComplete();bool getReceiving();
-	void setStringComplete(bool complete);
-	void setReceiving(bool receving);
+	void setStringComplete(bool);
+	void setReceiving(bool);
 
 #define INBUFFER_SIZE         128
 #define OUTBUFFER_SIZE        128
@@ -36,7 +40,7 @@ public:
 
 protected:
 
-	BusCom busCom = busWrong;
+	uint8_t busCom = busWrong;
 	unsigned long lastSentQuestion = 0;
 	unsigned long lastRxEnd = 0;
 	unsigned long lastTxEnd = 0;

@@ -19,7 +19,7 @@ public:
 	virtual ~RS485Manager();
 
 	void setup();
-	void send(aJsonObject* objectJSON);
+	void send(aJsonObject*);
 
 	void setRxMode();
 	void setTxMode();

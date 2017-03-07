@@ -9,7 +9,8 @@
 
 Motor::Motor(unsigned long serialNumber, unsigned long lastReading,
 		aJsonObject* root) :
-		Module(mtMotor, serialNumber, lastReading, root) {
+		Module(serialNumber, lastReading, root) {
+	mt = mtMotor;
 }
 
 Motor::~Motor() {
@@ -44,17 +45,17 @@ void Motor::setFromJson(int id, int value) {
 	}
 }
 
-void Motor::sendJson() {
+aJsonObject* Motor::sendJson() {
+	aJsonObject* objectJSON;
 	if (motorA_speed != motorA_speed_target || motorB_speed != motorB_speed_target
 			|| (millis() >= lastWriting + 100)) {
 
-		aJsonObject* objectJSON = toJson();
+		objectJSON = toJson();
 		Serial.print(StrIndent);
 		Serial.print("Mout:");
-		sendOutput(objectJSON);
-		aJson.deleteItem(objectJSON);
 		lastWriting = millis();
 	}
+	return objectJSON;
 }
 aJsonObject* Motor::toJson() {
 	aJsonObject* objectJSON = aJson.createObject();

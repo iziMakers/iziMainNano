@@ -5,7 +5,6 @@
 #include "src/bus/SpiManager.h"
 //#include "src/FreeMemory.h"
 #include "src/Linker.h"
-#include "src/Enums.h"
 
 SpiManager SPI;
 RS485Manager RS485(2, 6); ///RX,TX
@@ -26,44 +25,22 @@ RS485Manager RS485(2, 6); ///RX,TX
  */
 
 //#define PIN_LED  13     // no pin_led � cause du SPI
-#define MODULE_JOYSTICKS    true
-#define MODULE_MOTORS       true
-#define MODULE_ULTRASONIC   true
-#define MODULE_COLORSENSOR  false
-#define MODULE_SERVO        false
-#define MODULE_PIXELS       false
 
-#if MODULE_JOYSTICKS
+
 #include "src/modules/Joystick.h"
-Joystick joystick(100);
-#endif
-
-#if MODULE_MOTORS
+//Joystick joystick(100);
 #include "src/modules/Motor.h"
-Motor motor(101);
-#endif
-
-#if MODULE_ULTRASONIC
+//Motor motor(101);
 #include "src/modules/Ultrasonic.h"
-Ultrasonic ultrasonic(102);
-#endif
-
-#if MODULE_COLORSENSOR
+//Ultrasonic ultrasonic(102);
 #include "src/modules/ColorSensor.h"
-ColorSensor colorSensor(103);
-#endif
-
-#if MODULE_SERVO
+//ColorSensor colorSensor(103);
 #include "src/modules/Servo.h"
-Servo servo(104);
-#endif
-
-#if MODULE_PIXELS
+//Servo servo(104);
 #include "src/modules/Pixel.h"
-Pixel pixel(105);
-#endif
+//Pixel pixel(105);
 
-long baudrate_PC = 115200;
+const long baudrate_PC = 115200;
 
 // SPI interrupt routine **************
 ISR (SPI_STC_vect) {
@@ -120,9 +97,9 @@ void setup() {
 	//pinMode(PIN_LED, OUTPUT);
 	//digitalWrite(PIN_LED, LOW);
 
-	addModule(&motor);
-	addModule(&joystick);
-	addModule(&ultrasonic);
+	//addModule(&motor);
+	//addModule(&joystick);
+	//addModule(&ultrasonic);
 	//addModule(&pixel);
 	//addModule(&colorSensor);
 	//addModule(&servo);

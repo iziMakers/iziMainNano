@@ -9,7 +9,8 @@
 
 Pixel::Pixel(unsigned long serialNumber, unsigned long lastReading,
 		aJsonObject* root) :
-		Module(mtPixel, serialNumber, lastReading, root) {
+		Module(serialNumber, lastReading, root) {
+	mt = mtPixel;
 }
 
 Pixel::~Pixel() {
@@ -23,15 +24,14 @@ void Pixel::setup() {
 	//processOutput()
 }
 
-void Pixel::sendJson() {
+aJsonObject* Pixel::sendJson() {
+	aJsonObject* objectJSON;
 	if (isOneNewPixelColor) {
 		//if (millis() >= lastWriting + 1000) {
 
 		aJsonObject* objectJSON = toJson();
 		Serial.print(StrIndent);
 		Serial.print("Mout:");
-		sendOutput(objectJSON);
-		aJson.deleteItem(objectJSON);
 		lastWriting = millis();
 
 		//verification
@@ -42,7 +42,7 @@ void Pixel::sendJson() {
 			}
 		}
 	}
-
+	return objectJSON;
 }
 
 aJsonObject* Pixel::toJson() {

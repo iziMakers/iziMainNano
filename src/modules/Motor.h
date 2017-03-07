@@ -15,7 +15,7 @@ public:
 			aJsonObject* root = NULL);
 	virtual ~Motor();
 
-	void sendJson();
+	aJsonObject* sendJson();
 
 	int getMotorA_speed();
 	int getMotorA_speed_target();

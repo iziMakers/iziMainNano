@@ -9,7 +9,8 @@
 
 Ultrasonic::Ultrasonic(unsigned long serialNumber, unsigned long lastReading,
 		aJsonObject* root) :
-		Module(mtUltrasonic, serialNumber, lastReading, root) {
+		Module(serialNumber, lastReading, root) {
+	mt = mtUltrasonic;
 }
 
 Ultrasonic::~Ultrasonic() {

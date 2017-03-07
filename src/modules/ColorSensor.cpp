@@ -9,7 +9,8 @@
 
 ColorSensor::ColorSensor(unsigned long serialNumber, unsigned long lastReading,
 		aJsonObject* root) :
-		Module(mtColorSensor, serialNumber, lastReading, root) {
+		Module(serialNumber, lastReading, root) {
+	mt = mtColorSensor;
 }
 
 ColorSensor::~ColorSensor() {

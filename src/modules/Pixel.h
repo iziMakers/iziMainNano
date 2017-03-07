@@ -16,7 +16,7 @@ public:
 	virtual ~Pixel();
 
 	void setup();
-	void sendJson();
+	aJsonObject* sendJson();
 	void setPixelColor(int pixel_num, int pixel_color);
 	void setPixelHSL(int pixel_num, double h, double s, double l);
 	void setFireOn(boolean val);

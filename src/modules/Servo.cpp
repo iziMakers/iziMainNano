@@ -9,13 +9,14 @@
 
 Servo::Servo(unsigned long serialNumber, unsigned long lastReading,
 		aJsonObject* root) :
-		Module(mtServo, serialNumber, lastReading, root) {
+		Module(serialNumber, lastReading, root) {
+	mt = mtServo;
 }
 
 Servo::~Servo() {
 }
 
-void Servo::sendJson() {
+aJsonObject* Servo::sendJson() {
 	boolean new_val = false;
 	for (int iiii = 0; iiii < 5; iiii++) {
 		if (servoAngles[iiii] != servoTargetAngles[iiii]) {

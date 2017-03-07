@@ -7,10 +7,12 @@
 
 #include "../modules/Module.h"
 
-Module::Module(ModuleType mt, unsigned long serialNumber,
-		unsigned long lastReading, aJsonObject* root) :
-		mt(mt), serialNumber(serialNumber), lastReading(lastReading) {
-	processJsonInput(root);
+Module::Module(unsigned long serialNumber, unsigned long lastReading,
+		aJsonObject* root) :
+		serialNumber(serialNumber), lastReading(lastReading) {
+	if (root != NULL)
+		processJsonInput(root);
+	mt = mtWrong;
 }
 
 Module::~Module() {
@@ -26,12 +28,8 @@ void Module::processJsonInput(aJsonObject* root) {
 	}
 	aJson.deleteItem(root);
 }
-void Module::processSpecificInput(aJsonObject* root) {
-}
-aJsonObject* Module::sendJson() {
-}
 
-ModuleType Module::getType() {
+uint8_t Module::getType() {
 	return mt;
 }
 unsigned long Module::getSerialNumber() {

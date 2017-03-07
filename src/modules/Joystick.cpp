@@ -9,7 +9,9 @@
 
 Joystick::Joystick(unsigned long serialNumber, unsigned long lastReading,
 		aJsonObject* root) :
-		Module(mtJoystick, serialNumber, lastReading, root) {
+		Module(serialNumber, lastReading, root) {
+	mt = mtJoystick;
+	;
 }
 
 Joystick::~Joystick() {
@@ -49,11 +51,9 @@ void Joystick::setFromJson(int id, int value) {
 aJsonObject* Joystick::sendJson() {
 	aJsonObject* objectJSON = NULL;
 	if (millis() > lastWriting + 300) {
-
 		objectJSON = toJson();
 		Serial.print(StrIndent);
 		Serial.print("Jout:");
-		aJson.deleteItem(objectJSON);
 		lastWriting = millis();
 	}
 	return objectJSON;
